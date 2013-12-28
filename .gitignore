@@ -16,3 +16,8 @@
 *.exe
 *.out
 *.app
+*.bin
+
+# Sublime-text
+*.sublime-project
+*.sublime-workspace
