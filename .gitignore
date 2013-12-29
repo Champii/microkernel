@@ -21,3 +21,6 @@
 # Sublime-text
 *.sublime-project
 *.sublime-workspace
+
+# Build files
+build/*.img

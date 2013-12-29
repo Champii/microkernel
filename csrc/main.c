@@ -12,6 +12,11 @@
 
 void          main()
 {
-  print();
+  int         color;
+
+  color = COLOR_WHITE;
+
+  printk(color, "Hello World !");
+
   for (;;);
 }

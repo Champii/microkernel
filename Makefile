@@ -33,9 +33,9 @@ CFLAGS 				= -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions 
 # Srcs
 LD_SRC 				= $(PATH_LD)/link.ld
 ASM_SRC 			= $(PATH_ASM)/start.asm
-C_SRC 				= $(PATH_C)/main.c 									\
-								$(PATH_SYSTEM)/system.c 					\
-								$(PATH_SCREEN)/screen.c
+C_SRC 				= $(PATH_SYSTEM)/system.c 					\
+								$(PATH_SCREEN)/screen.c 					\
+								$(PATH_C)/main.c
 
 # Objs
 ASM_OBJ 			= $(ASM_SRC:.asm=.o)
@@ -52,7 +52,6 @@ clean:
 
 fclean: clean
 	$(RM) $(PATH_BUILD)/$(NAME)
-	$(RM) $(PATH_BUILD)/$(DISK_NAME)
 
 re: fclean all
 

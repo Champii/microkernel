@@ -20,7 +20,7 @@ $> fdisk -l /dev/loopX
 find field 'Start'
 
 - Map partition to loopback
-$> losetup -o COUNT /dev/loop{X+1} /dev/loopX # Where COUNT is field ('Start' * 512) 
+$> losetup -o COUNT /dev/loop{X+1} /dev/loopX # Where {X+1} is X+1 and Where COUNT is field ('Start' * 512)
 
 - Format partition
 $> mke2fs /dev/loop{X+1}
