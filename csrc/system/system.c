@@ -8,9 +8,12 @@
 *
 ************************************************/
 
-extern unsigned char  *memcpy(unsigned char *dest, const unsigned char *src, int count)
+extern void          *memcpy(void *d, const void *s, int count)
 {
   int                 i;
+  unsigned char       *dest = d;
+  const unsigned char *src = s;
+
 
   for (i = 0; i < count; i++)
     dest[i] = src[i];
@@ -18,9 +21,10 @@ extern unsigned char  *memcpy(unsigned char *dest, const unsigned char *src, int
   return dest;
 }
 
-extern unsigned char  *memset(unsigned char *dest, unsigned char val, int count)
+extern void           *memset(void *d, unsigned char val, int count)
 {
   int                 i;
+  unsigned char       *dest = d;
 
   for (i = 0; i < count; i++)
     dest[i] = val;
