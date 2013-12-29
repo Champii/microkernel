@@ -16,7 +16,7 @@ void          main()
 
   color = COLOR_WHITE;
 
-  printk(color, "Hello World !");
+  printk(color, "Hello World !\n");
 
   for (;;);
 }
