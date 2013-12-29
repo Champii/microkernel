@@ -34,5 +34,6 @@
 # define              COLOR_WHITE           15;
 
 void                  printk(int color, char *str);
+void                  clear_screen();
 
 #endif                /*__SCREEN_H__*/

@@ -10,13 +10,17 @@
 
 #include      "screen.h"
 
-void          main()
+int           main()
 {
   int         color;
 
   color = COLOR_WHITE;
 
+  clear_screen();
+
   printk(color, "Hello World !\n");
 
   for (;;);
+
+  return 0;
 }
