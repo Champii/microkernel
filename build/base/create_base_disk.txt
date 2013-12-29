@@ -1,0 +1,30 @@
+[AS ROOT]
+
+- Create disk and create loopback
+$> dd if=/dev/zero of=base.img bs=512 count=32130
+$> losetup -f base.img
+
+- Find loopback interface
+$> losetup -a
+/dev/loop0: [0806]:43506 (/folder/base.img)
+         ^
+         |
+
+- Create partition table
+$> fdisk /dev/loopX  # Where X was found previously
+'o' to create partition table
+'n' to create new partition
+choose default parameters
+'w' to write and exit
+$> fdisk -l /dev/loopX
+find field 'Start'
+
+- Map partition to loopback
+$> losetup -o COUNT /dev/loop{X+1} /dev/loopX # Where COUNT is field ('Start' * 512) 
+
+- Format partition
+$> mke2fs /dev/loop{X+1}
+
+- Umount all
+$> losetup -d /dev/loop{X+1}
+$> losetup -d /dev/loopX

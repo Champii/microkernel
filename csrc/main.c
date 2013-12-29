@@ -8,7 +8,10 @@
 *
 ************************************************/
 
-void      main()
+#include      "screen.h"
+
+void          main()
 {
+  print();
   for (;;);
 }
