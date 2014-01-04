@@ -11,7 +11,7 @@
 [BITS 32]
 global start
 start:
-  mov esp, _sys_stack
+  mov esp, stack
   jmp stublet
 
 ALIGN 4
@@ -27,11 +27,25 @@ mboot:
   dd MULTIBOOT_CHECKSUM
 
 stublet:
-  EXTERN main
-  CALL main
+  extern main
+  call main
   jmp $
+
+global flush_gdt
+extern gdt_desc
+flush_gdt:
+    lgdt [gdt_desc]
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    jmp 0x08:flush2
+flush2:
+    ret
 
 SECTION .bss
   resb 8192
 
-_sys_stack:
+stack:

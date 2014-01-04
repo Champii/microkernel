@@ -9,10 +9,14 @@
 ************************************************/
 
 #include      "screen.h"
+#include      "gdt.h"
 
 int           main()
 {
   int         color;
+
+
+  init_gdt();
 
   color = COLOR_WHITE;
 

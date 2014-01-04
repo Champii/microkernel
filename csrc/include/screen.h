@@ -8,8 +8,8 @@
 *
 ************************************************/
 
-#ifndef               __SCREENERA_H__
-# define              __SCREENERA_H__
+#ifndef               __SCREEN_H__
+# define              __SCREEN_H__
 
 # define              SCREEN_PTR            0xB8000;
 
