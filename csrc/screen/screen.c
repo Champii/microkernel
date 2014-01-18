@@ -14,7 +14,7 @@
 int               screen_x = 0;
 int               screen_y = 0;
 int               color_byte;
-unsigned short    *screen = (unsigned short *)SCREEN_PTR
+unsigned short    *screen = (unsigned short *)SCREEN_PTR;
 
 void              move_cursor()
 {

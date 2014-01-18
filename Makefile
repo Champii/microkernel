@@ -27,6 +27,7 @@ PATH_SCREEN   = $(PATH_C)/screen
 PATH_GDT   		= $(PATH_C)/gdt
 PATH_IDT   		= $(PATH_C)/idt
 PATH_ASM 			= asm
+PATH_ISRS			= $(PATH_C)/isrs
 PATH_LD 			= link
 
 # Cflags
@@ -35,11 +36,12 @@ CFLAGS 				= -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions 
 # Srcs
 LD_SRC 				= $(PATH_LD)/link.ld 
 ASM_SRC 			= $(PATH_ASM)/start.asm
-C_SRC 				= $(PATH_SYSTEM)/system.c 					\
-								$(PATH_SCREEN)/screen.c 					\
-								$(PATH_GDT)/gdt.c 								\
-								$(PATH_C)/main.c \
-$(PATH_IDT)/idt.c
+C_SRC 				= $(PATH_SYSTEM)/system.c \
+				$(PATH_SCREEN)/screen.c	\
+				$(PATH_GDT)/gdt.c \
+				$(PATH_C)/main.c \
+				$(PATH_IDT)/idt.c \
+				$(PATH_ISRS)/isrs.c 
 
 # Objs
 ASM_OBJ 			= $(ASM_SRC:.asm=.o)

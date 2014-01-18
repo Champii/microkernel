@@ -11,6 +11,8 @@
 #include      "screen.h"
 #include      "gdt.h"
 #include      "idt.h"
+#include      "isrs.h"
+
 
 int           main()
 {
@@ -18,6 +20,7 @@ int           main()
 
   init_gdt();
   init_idt();
+  init_isrs();
 
   color = COLOR_WHITE;
 
