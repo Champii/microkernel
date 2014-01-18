@@ -16,6 +16,8 @@
 
 int           main()
 {
+  clear_screen();
+
   init_gdt();
   printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
 
@@ -25,7 +27,6 @@ int           main()
   init_isrs();
   printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
 
-  clear_screen();
 
   printk(COLOR_RED, "Hello World !\n");
 
