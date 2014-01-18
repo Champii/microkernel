@@ -13,16 +13,11 @@
 
 int           main()
 {
-  int         color;
-
-
   init_gdt();
-
-  color = COLOR_WHITE;
 
   clear_screen();
 
-  printk(color, "Hello World !\n");
+  printk(COLOR_RED, "Hello World !\n");
 
   for (;;);
 
