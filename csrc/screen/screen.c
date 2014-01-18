@@ -62,7 +62,6 @@ void              clear_screen()
 
 void              printch(char c)
 {
-  int             SCREEN_WIDTH = SCREEN_WIDTH;
   unsigned short  color = color_byte << 8;
   unsigned short  *offset;
 

@@ -16,8 +16,6 @@
 
 int           main()
 {
-  int         color;
-
   init_gdt();
   init_idt();
   init_isrs();
@@ -26,7 +24,7 @@ int           main()
 
   printk(COLOR_RED, "Hello World !\n");
 
-  printk(color, 19/0);
+  printk(COLOR_RED, 19/0);
 
   for (;;);
 
