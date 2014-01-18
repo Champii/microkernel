@@ -11,8 +11,8 @@
 #ifndef               __GDT_H__
 # define              __GDT_H__
 
-# define              BASE        0x0;
-# define              LIMIT       0xFFFFFFFF;
+# define              BASE        0x0
+# define              LIMIT       0xFFFFFFFF
 
 struct                s_gdt_entry
 {
