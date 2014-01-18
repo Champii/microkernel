@@ -19,8 +19,13 @@ int           main()
   int         color;
 
   init_gdt();
+  printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
+
   init_idt();
+  printk(COLOR_CYAN, "-- IDT LOADED -- !\n");
+
   init_isrs();
+  printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
 
   color = COLOR_WHITE;
 
