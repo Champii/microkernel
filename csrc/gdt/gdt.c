@@ -29,9 +29,6 @@ void                      init_segment(int seg_num, unsigned long base, unsigned
 
 void                      init_gdt()
 {
-  int                     base = BASE;
-  int                     limit = LIMIT;
-
   gdt_desc.limit = (sizeof(struct s_gdt_entry) * 3) - 1;
   gdt_desc.base = (unsigned int)&gdt;
 
@@ -39,10 +36,10 @@ void                      init_gdt()
   init_segment(0, 0, 0, 0, 0);
 
   /* Code segment */
-  init_segment(1, base, limit, 0xC, 0x9A);
+  init_segment(1, BASE, LIMIT, 0xC, 0x9A);
 
   /* Data segment */
-  init_segment(2, base, limit, 0xC, 0x92);
+  init_segment(2, BASE, LIMIT, 0xC, 0x92);
 
   flush_gdt();
 }

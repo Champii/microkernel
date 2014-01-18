@@ -27,11 +27,10 @@ int           main()
   init_isrs();
   printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
 
-  color = COLOR_WHITE;
-
   clear_screen();
-  
-  printk(color, "Hello World !\n");
+
+  printk(COLOR_RED, "Hello World !\n");
+
   printk(color, 19/0);
 
   for (;;);

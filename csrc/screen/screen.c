@@ -18,8 +18,7 @@ unsigned short    *screen = (unsigned short *)SCREEN_PTR;
 
 void              move_cursor()
 {
-  int             width = SCREEN_WIDTH;
-  unsigned        offset = screen_y * width + screen_x;
+  unsigned        offset = screen_y * SCREEN_WIDTH + screen_x;
 
   outportb(0x3D4, 14);
   outportb(0x3D5, offset >> 8);
@@ -34,30 +33,26 @@ void              change_color(int color)
 
 void              scroll()
 {
-  int             height = SCREEN_HEIGHT;
   int             offset;
 
-  if (screen_y >= height)
+  if (screen_y >= SCREEN_HEIGHT)
   {
-    offset = screen_y - height + 1;
-    memcpy(screen, screen + offset * 80, (height - offset) * 80 * 2);
+    offset = screen_y - SCREEN_HEIGHT + 1;
+    memcpy(screen, screen + offset * 80, (SCREEN_HEIGHT - offset) * 80 * 2);
 
-    memsetw(screen + (height - offset) * 80, 15, 80);
-    screen_y = height - 1;
+    memsetw(screen + (SCREEN_HEIGHT - offset) * 80, 15, 80);
+    screen_y = SCREEN_HEIGHT - 1;
   }
 }
 
 void              clear_screen()
 {
-  int             width = SCREEN_WIDTH;
-  int             height = SCREEN_HEIGHT;
-  unsigned char   white = COLOR_WHITE;
   unsigned short  color;
 
-  change_color(white);
+  change_color(COLOR_WHITE);
   color = color_byte << 8;
 
-  memsetw(screen, ' ' | color, width * height * 2);
+  memsetw(screen, ' ' | color, SCREEN_WIDTH * SCREEN_HEIGHT * 2);
 
   screen_x = 0;
   screen_y = 0;
@@ -67,7 +62,7 @@ void              clear_screen()
 
 void              printch(char c)
 {
-  int             width = SCREEN_WIDTH;
+  int             SCREEN_WIDTH = SCREEN_WIDTH;
   unsigned short  color = color_byte << 8;
   unsigned short  *offset;
 
@@ -78,12 +73,12 @@ void              printch(char c)
   }
   else
   {
-    offset = screen + (screen_y * width + screen_x);
+    offset = screen + (screen_y * SCREEN_WIDTH + screen_x);
     *offset = c | color;
     screen_x++;
   }
 
-  if (screen_x >= width)
+  if (screen_x >= SCREEN_WIDTH)
   {
     screen_x = 0;
     screen_y++;
