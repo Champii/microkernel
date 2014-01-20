@@ -9,6 +9,7 @@
 ************************************************/
 #include                  "system.h"
 #include                  "screen.h"
+#include                  "idt.h"
 #include                  "mm.h"
 
 
@@ -21,57 +22,49 @@ t_page_table              *page_table = 0;
 unsigned                  *frames;
 unsigned                  nframes;
 
-// Macros used in the bitset algorithms.
-#define INDEX_FROM_BIT(a) (a/(8*4))
-#define OFFSET_FROM_BIT(a) (a%(8*4))
-
-// Static function to set a bit in the frames bitset
 static void               set_frame(unsigned frame_addr)
 {
-   unsigned               frame = frame_addr/0x1000;
-   unsigned               idx = INDEX_FROM_BIT(frame);
-   unsigned               off = OFFSET_FROM_BIT(frame);
+  unsigned               frame = frame_addr/0x1000;
+  unsigned               idx = INDEX_FROM_BIT(frame);
+  unsigned               off = OFFSET_FROM_BIT(frame);
 
-   frames[idx] |= (0x1 << off);
+  frames[idx] |= (0x1 << off);
 }
 
-// Static function to clear a bit in the frames bitset
-static void               clear_frame(unsigned frame_addr)
-{
-   unsigned               frame = frame_addr/0x1000;
-   unsigned               idx = INDEX_FROM_BIT(frame);
-   unsigned               off = OFFSET_FROM_BIT(frame);
+// UNUSED YET
 
-   frames[idx] &= ~(0x1 << off);
-}
+// static void               clear_frame(unsigned frame_addr)
+// {
+//   unsigned               frame = frame_addr/0x1000;
+//   unsigned               idx = INDEX_FROM_BIT(frame);
+//   unsigned               off = OFFSET_FROM_BIT(frame);
 
-// Static function to test if a bit is set.
-static unsigned           test_frame(unsigned frame_addr)
-{
-   unsigned               frame = frame_addr/0x1000;
-   unsigned               idx = INDEX_FROM_BIT(frame);
-   unsigned               off = OFFSET_FROM_BIT(frame);
+//   frames[idx] &= ~(0x1 << off);
+// }
 
-   return (frames[idx] & (0x1 << off));
-}
+// static unsigned           test_frame(unsigned frame_addr)
+// {
+//   unsigned               frame = frame_addr/0x1000;
+//   unsigned               idx = INDEX_FROM_BIT(frame);
+//   unsigned               off = OFFSET_FROM_BIT(frame);
 
-// Static function to find the first free frame.
-static unsigned           first_frame()
+//   return (frames[idx] & (0x1 << off));
+// }
+
+static unsigned          first_frame()
 {
   unsigned               i, j;
 
   for (i = 0; i < INDEX_FROM_BIT(nframes); i++)
   {
-    if (frames[i] != 0xFFFFFFFF) // nothing free, exit early.
+    if (frames[i] != 0xFFFFFFFF)
     {
-      // at least one bit is free here.
       for (j = 0; j < 32; j++)
       {
-        unsigned toTest = 0x1 << j;
-        if ( !(frames[i]&toTest) )
-        {
+        unsigned         toTest = 0x1 << j;
+
+        if (!(frames[i] & toTest))
           return i*4*8+j;
-        }
       }
     }
   }
@@ -83,7 +76,7 @@ void                      *kmalloc(unsigned size)
 {
   void                    *tmp;
 
-  if (placement_address & 0xFFFFF000) // If the address is not already page-aligned
+  if (placement_address & 0xFFFFF000)
   {
     placement_address &= 0xFFFFF000;
     placement_address += 0x1000;
@@ -92,19 +85,6 @@ void                      *kmalloc(unsigned size)
   tmp = (void *)placement_address;
   placement_address += size;
   return (tmp);
-}
-
-unsigned                  get_free_page()
-{
-  int                     i;
-  int                     j;
-
-  for (i = 0; i < 1024; i++)
-    for (j = 0; j < 1024; j++)
-      if (!page_dir->tables[i]->pages[j].present)
-        return i + j;
-
-  return (-1);
 }
 
 void                      alloc_page(t_page *page, int is_kernel, int is_writeable)
@@ -135,13 +115,13 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
   address /= 0x1000;
   unsigned                table_idx = address / 1024;
 
-  if (dir->tables[table_idx]) // If this table is already assigned
+  if (dir->tables[table_idx])
     return &dir->tables[table_idx]->pages[address%1024];
   else if (make)
   {
     dir->tables[table_idx] = (t_page_table*)kmalloc(sizeof(t_page_table));
     memset(dir->tables[table_idx], 0, 0x1000);
-    dir->tablesPhysical[table_idx] = ((unsigned)dir->tables[table_idx]) | 0x7; // PRESENT, RW, US.
+    dir->tablesPhysical[table_idx] = ((unsigned)dir->tables[table_idx]) | 0x7;
     return &dir->tables[table_idx]->pages[address%1024];
   }
   else
@@ -160,26 +140,24 @@ void                      set_page_dir(t_page_directory *new)
 
 }
 
-void page_fault(t_registers regs)
+void                      page_fault(t_registers regs)
 {
-    // A page fault has occurred.
-    // The faulting address is stored in the CR2 register.
-    unsigned faulting_address;
+    unsigned              faulting_address;
+
+    int                   present = !(regs.err_code & 0x1);
+    int                   rw = regs.err_code & 0x2;
+    int                   us = regs.err_code & 0x4;
+    int                   reserved = regs.err_code & 0x8;
+
     asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-    // The error code gives us details of what happened.
-    int present   = !(regs.err_code & 0x1); // Page not present
-    int rw = regs.err_code & 0x2;           // Write operation?
-    int us = regs.err_code & 0x4;           // Processor was in user-mode?
-    int reserved = regs.err_code & 0x8;     // Overwritten CPU-reserved bits of page entry?
-    int id = regs.err_code & 0x10;          // Caused by an instruction fetch?
-
-    // Output an error message.
     printk(COLOR_WHITE, "Page fault! ( ");
+
     if (present) {printk(COLOR_WHITE, "present ");}
     if (rw) {printk(COLOR_WHITE, "read-only ");}
     if (us) {printk(COLOR_WHITE, "user-mode ");}
     if (reserved) {printk(COLOR_WHITE, "reserved ");}
+
     printk(COLOR_WHITE, ") at 0x");
     // printk_COLOR_WHITE, hex(faulting_address);
     printk(COLOR_WHITE, "\n");
@@ -202,10 +180,12 @@ void                      init_page_dir()
   i = 0;
   while (i < placement_address)
   {
-    // Kernel code is readable but not writeable from userspace.
     alloc_page(get_page(i, 1, page_dir), 0, 0);
     i += 0x1000;
   }
+
+  // TODO
+  // idt_set_gate(14, &page_fault, 0x08, 0x8E);
 
   set_page_dir(page_dir);
 }

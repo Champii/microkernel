@@ -36,7 +36,11 @@ CFLAGS 				= -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions 
 
 # Srcs
 LD_SRC 				= $(PATH_LD)/link.ld
-ASM_SRC 			= $(PATH_ASM)/start.asm
+
+ASM_SRC 			= $(PATH_ASM)/start.S 	\
+								$(PATH_ASM)/gdt.S 		\
+								$(PATH_ASM)/idt.S
+
 C_SRC 				= $(PATH_SYSTEM)/system.c \
 								$(PATH_SCREEN)/screen.c	\
 								$(PATH_MM)/mm.c 				\
@@ -46,24 +50,45 @@ C_SRC 				= $(PATH_SYSTEM)/system.c \
 								$(PATH_ISRS)/isrs.c
 
 # Objs
-ASM_OBJ 			= $(ASM_SRC:.asm=.o)
+ASM_OBJ 			= $(ASM_SRC:.S=.o)
 C_OBJ 				= $(C_SRC:.c=.o)
 
-all: $(NAME)
 
-$(NAME): $(C_OBJ)
-	$(NASM) -o $(ASM_OBJ) $(ASM_SRC)
-	$(LD) -T $(LD_SRC) -o $(PATH_BUILD)/$(NAME) $(ASM_OBJ) $(C_OBJ)
+# Output colors
+RESET_COLOR=\033[0;0m
+GREEN=\033[0;32;01m
+RED=\033[0;31;01m
+YELLOW=\033[0;33;01m
+BUILT_COLOR=\033[5;32;01m
+BLUE=\033[0;34;01m
+MAGENTA=\033[0;35;01m
+CYAN=\033[0;36;01m
+
+OK_STRING=$(GREEN)[OK]$(RESET_COLOR)
+ERROR_STRING=$(RED)[ERRORS]$(RESET_COLOR)
+WARN_STRING=$(YELLOW)[WARNINGS]$(RESET_COLOR)
+BUILT_STRING=$(BLUE)[$(BUILT_COLOR)Built !$(BLUE)]$(RESET_COLOR)
+
+all: $(NAME)
+	@echo "\n$(BUILT_STRING)"
+
+$(NAME): $(ASM_OBJ) $(C_OBJ)
+	@echo -n "\n$(BLUE)[Linking]$(RESET_COLOR)"
+	@if $(LD) -T $(LD_SRC) -o $(PATH_BUILD)/$(NAME) $(ASM_OBJ) $(C_OBJ); then printf "%25s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 
 clean:
-	$(RM) $(ASM_OBJ) $(C_OBJ)
+	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
+	@if $(RM) $(ASM_OBJ) $(C_OBJ); then printf "%24s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 
 fclean: clean
-	$(RM) $(PATH_BUILD)/$(NAME)
+	@echo -n "\n$(BLUE)[Full Cleaning]$(RESET_COLOR)"
+	@if	$(RM) $(PATH_BUILD)/$(NAME); then printf "%19s" " -> ";  echo '$(OK_STRING)\n'; else  echo '$(ERROR_STRING)'; fi
+
 
 re: fclean all
 
 disk: $(NAME)
+	@echo "\n$(BLUE)[Preparing Base Disk]$(RESET_COLOR)"
 	cp $(PATH_BUILD)/base/base.img $(PATH_BUILD)/$(DISK_NAME)
 	sudo losetup -f $(PATH_BUILD)/$(DISK_NAME)
 	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
@@ -77,6 +102,7 @@ disk: $(NAME)
 	sudo losetup -d /dev/loop0
 
 install: $(NAME)
+	@echo "\n$(BLUE)[Installing Kernel Into Disk]$(RESET_COLOR)"
 	sudo losetup -f build/disk.img
 	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
 	sudo mount /dev/loop1 /mnt
@@ -85,12 +111,21 @@ install: $(NAME)
 	sudo losetup -d /dev/loop1
 	sudo losetup -d /dev/loop0
 
-mountdisk:
-	sudo losetup -f build/disk.img
-	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
-	sudo mount /dev/loop1 /mnt
+# mountdisk:
+# 	sudo losetup -f build/disk.img
+# 	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
+# 	sudo mount /dev/loop1 /mnt
 
-umountdisk:
-	sudo umount /mnt
-	sudo losetup -d /dev/loop1
-	sudo losetup -d /dev/loop0
+# umountdisk:
+# 	sudo umount /mnt
+# 	sudo losetup -d /dev/loop1
+# 	sudo losetup -d /dev/loop0
+
+%.o: %.S
+	@echo -n "$(MAGENTA)Asm$(RESET_COLOR):  $< "
+	@if $(NASM) -o $@ $<; then printf "%*s" `expr 28 - \`echo $< | wc -c\`` " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
+
+%.o : %.c
+	@echo -n "$(CYAN)C$(RESET_COLOR):  $< "
+	@if $(CC) $(CFLAGS) -c -o $@ $<; then printf "%*s" `expr 30 - \`echo $< | wc -c\`` " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
+

@@ -11,6 +11,10 @@
 #ifndef               __MM_H__
 # define              __MM_H__
 
+#define               INDEX_FROM_BIT(a) (a/(8*4))
+#define               OFFSET_FROM_BIT(a) (a%(8*4))
+
+
 typedef struct        s_page
 {
   unsigned            present    : 1;

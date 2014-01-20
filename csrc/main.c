@@ -34,8 +34,8 @@ void          init()
 
 int           main()
 {
-  int         *test;
-  int         test2;
+  // int         *test;
+  // int         test2;
 
   init();
 
