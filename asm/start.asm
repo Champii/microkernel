@@ -67,7 +67,7 @@ isr%1:
 	    push byte %1	; Push the interrupt number
 	    jmp isr_common_stub
 %endmacro
-	
+
 ISR_NOERRCODE 0
 ISR_NOERRCODE 1
 ISR_NOERRCODE 2
@@ -128,11 +128,11 @@ isr_common_stub:
 	pop ds
 	popa
 	add esp, 8     	; Cleans up the pushed error code and pushed ISR number
-	iret   
-	
+	iret
 
-	
+
+
 SECTION .bss
-  resb 8192
+  resb 16384
 
 stack:

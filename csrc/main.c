@@ -34,12 +34,22 @@ void          init()
 
 int           main()
 {
+  int         *test;
+  int         test2;
 
   init();
 
   printk(COLOR_RED, "Hello World !\n");
 
-  printk(COLOR_RED, 19/0);
+
+  // Page Fault Test
+  // test = 0xA0000000;
+  // test2 = *test;
+
+  // *test = 1;
+
+  // Div by 0 Fault Test
+  // printk(COLOR_RED, 19/0);
 
   for (;;);
 
