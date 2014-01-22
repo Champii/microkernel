@@ -27,7 +27,6 @@ KERNEL_PAGE_NUMBER equ (KERNEL_VIRTUAL_BASE >> 22)  ; Page directory index of ke
 
 STACKSIZE equ 0x4000
 
-
 ;
 ; SECTION .multiboot
 ;
@@ -51,15 +50,6 @@ section .data
 
 align 0x1000
 
-;pagedirectory:
-
-;  dd 0x00000083
-;  times (KERNEL_PAGE_NUMBER - 1) dd 0
-
-;  dd 0x00000083
-;  times (1024 - KERNEL_PAGE_NUMBER - 1) dd 0
-
-
 ;
 ; SECTION .test
 ;
@@ -72,10 +62,10 @@ align 0x1000
 higherhalf:
 
   ; Remove old pagedirectory
-;  mov dword [pagedirectory], 0
- ; invlpg [0]
+  mov dword [pagedirectory], 0
+  invlpg [0]
 
- hlt
+; hlt
 
   ; Setting stack
   mov esp, stack
@@ -97,12 +87,32 @@ higherhalf:
 section .setup
 align 0x1000
 
+;bottompagetable:
+;  dd 0x00000003
+
+;toppagetable:
+;  dd 0xC0000003
+
+boot_page_table:
+  %assign i 0
+  %rep    1024
+  dd 0x00000003 + (i * 4096)
+  %assign i i+1
+  %endrep
+
+kern_page_table:
+  %assign i 0
+  %rep    1024
+  dd 0x00000003 + (i * 4096) + KERNEL_VIRTUAL_BASE
+  %assign i i+1
+  %endrep
+
 pagedirectory:
 
-  dd 0x00000083
+  dd 0x00000003 + boot_page_table
   times (KERNEL_PAGE_NUMBER - 1) dd 0
 
-  dd 0x00000083
+  dd 0x00000003 + kern_page_table
   times (1024 - KERNEL_PAGE_NUMBER - 1) dd 0
 
 start:
@@ -118,12 +128,11 @@ start:
 
   ; Init PageDirectory
   mov ecx, pagedirectory
-;  mov ecx, (pagedirectory - KERNEL_VIRTUAL_BASE)
   mov cr3, ecx
 
-  mov ecx, cr4
-  or ecx, 0x00000010
-  mov cr4, ecx
+;  mov ecx, cr4
+;  or ecx, 0x00000010
+;  mov cr4, ecx
 
   mov ecx, cr0
   or ecx, 0x80000000
@@ -141,8 +150,8 @@ trickgdt:
 
 gdt:
   dd 0, 0                                             ; null gate
-  db 0xFF, 0xFF, 0, 0, 0, 10011010b, 11001111b, 0x00  ; code selector 0x08: base 0x40000000, limit 0xFFFFFFFF, type 0x9A, granularity 0xCF
-  db 0xFF, 0xFF, 0, 0, 0, 10010010b, 11001111b, 0x00  ; data selector 0x10: base 0x40000000, limit 0xFFFFFFFF, type 0x92, granularity 0xCF
+  db 0xFF, 0xFF, 0, 0, 0, 10011010b, 11001111b, 0x00  ; code selector 0x08: base 0x00000000, limit 0xFFFFFFFF, type 0x9A, granularity 0xCF
+  db 0xFF, 0xFF, 0, 0, 0, 10010010b, 11001111b, 0x00  ; data selector 0x10: base 0x00000000, limit 0xFFFFFFFF, type 0x92, granularity 0xCF
 
 gdt_end:
 
