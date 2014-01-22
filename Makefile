@@ -15,7 +15,7 @@ DISK_NAME			= disk.img
 # Binaries
 NASM 					= nasm -f elf32
 CC 						= gcc -m32
-LD 						= ld -m elf_i386
+LD 						= ld -m elf_i386 -z max-page-size=0x1000
 RM 						= rm -f
 
 # Paths
@@ -116,10 +116,10 @@ install: $(NAME)
 # 	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
 # 	sudo mount /dev/loop1 /mnt
 
-# umountdisk:
-# 	sudo umount /mnt
-# 	sudo losetup -d /dev/loop1
-# 	sudo losetup -d /dev/loop0
+umountdisk:
+	sudo umount /mnt
+	sudo losetup -d /dev/loop1
+	sudo losetup -d /dev/loop0
 
 %.o: %.S
 	@echo -n "$(MAGENTA)Asm$(RESET_COLOR):  $< "
