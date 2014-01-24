@@ -14,7 +14,7 @@ DISK_NAME			= disk.img
 
 # Binaries
 NASM 					= nasm -f elf32
-CC 						= gcc -m32
+CC 						= gcc -m32 -g3
 LD 						= ld -m elf_i386 -z max-page-size=0x1000
 RM 						= rm -f
 

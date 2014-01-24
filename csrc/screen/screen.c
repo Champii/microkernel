@@ -16,6 +16,46 @@ int               screen_y = 0;
 int               color_byte;
 unsigned short    *screen = (unsigned short *)SCREEN_PTR;
 
+int bool(int n)
+{
+  int flag;
+
+  if (n < -2147483647)
+    flag = 1;
+  else
+    flag = 0;
+  return (flag);
+}
+
+int my_put_nbr(int nb)
+{
+  int div;
+  int flag;
+
+  div = 1;
+  flag = 0;
+  if (nb < 0)
+  {
+    flag = bool(nb);
+    if (flag == 1)
+      nb = -2147483647;
+    printch('-');
+    nb = 0 - nb;
+  }
+  while ((nb / div) >= 10)
+    div = div * 10;
+  while (div)
+  {
+    if (flag == 1 && div == 1)
+      printch((nb / div) % 10 + 49);
+    if (flag == 0 || (flag == 1 && div != 1))
+      printch((nb / div) % 10 + 48);
+    div = div / 10;
+  }
+  return (0);
+}
+
+
 void              move_cursor()
 {
   unsigned        offset = screen_y * SCREEN_WIDTH + screen_x;

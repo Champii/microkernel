@@ -19,11 +19,11 @@ void          init()
 {
   clear_screen();
 
-  init_gdt();
-  printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
-
   init_mm();
   printk(COLOR_CYAN, "-- MM LOADED -- !\n");
+
+  init_gdt();
+  printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
 
   init_idt();
   printk(COLOR_CYAN, "-- IDT LOADED -- !\n");
