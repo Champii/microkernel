@@ -13,6 +13,7 @@ SECTIONS
     *(.setup)
     . = ALIGN(4096);
   }
+  realend = .;
 
   . = phys;
 
@@ -31,6 +32,6 @@ SECTIONS
   {
     *(.bss)
     . = ALIGN(4096);
+    end = .;
   }
-  end = .;
 }

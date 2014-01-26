@@ -46,10 +46,11 @@ typedef struct        s_registers
   unsigned            eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
 }                     t_registers;
 
+unsigned              virt_to_phys(unsigned virt);
+unsigned              phys_to_virt(unsigned phys);
+
 void                  init_mm();
 t_page                *get_page(unsigned, int, t_page_directory *);
-void                  set_page_dir(t_page_directory *);
-void                  *kmalloc(unsigned);
 
 /*LOOK stos (asm) => page table*/
 

@@ -10,51 +10,43 @@
 
 #include          "screen.h"
 #include          "system.h"
+#include          "kmalloc.h"
+#include          "mm.h"
 
 int               screen_x = 0;
 int               screen_y = 0;
 int               color_byte;
 unsigned short    *screen = (unsigned short *)SCREEN_PTR;
 
-int bool(int n)
+
+char    *my_putnbr_base(unsigned nbr, char *base)
 {
-  int flag;
+  int   diviseur;
+  int   basenb;
+  char    *res;
+  int   i;
 
-  if (n < -2147483647)
-    flag = 1;
-  else
-    flag = 0;
-  return (flag);
-}
-
-int my_put_nbr(int nb)
-{
-  int div;
-  int flag;
-
-  div = 1;
-  flag = 0;
-  if (nb < 0)
+  i = 0;
+  basenb = strlen(base);
+  diviseur = 1;
+  res = kmalloc(10 * sizeof(*res));
+  if (nbr < 0)
   {
-    flag = bool(nb);
-    if (flag == 1)
-      nb = -2147483647;
-    printch('-');
-    nb = 0 - nb;
+    res[i++] = '-';
+    nbr = -nbr;
   }
-  while ((nb / div) >= 10)
-    div = div * 10;
-  while (div)
+  while ((nbr / diviseur) >= basenb)
   {
-    if (flag == 1 && div == 1)
-      printch((nb / div) % 10 + 49);
-    if (flag == 0 || (flag == 1 && div != 1))
-      printch((nb / div) % 10 + 48);
-    div = div / 10;
+    diviseur = diviseur * basenb;
   }
-  return (0);
+  while (diviseur >= 1)
+  {
+    res[i++] = base[(nbr / diviseur) % basenb];
+    nbr = nbr % diviseur;
+    diviseur = diviseur / basenb;
+  }
+  return (res);
 }
-
 
 void              move_cursor()
 {
@@ -138,3 +130,43 @@ void            printk(int color, char *str)
   }
 }
 
+int bool(int n)
+{
+  int flag;
+
+  if (n < -2147483647)
+    flag = 1;
+  else
+    flag = 0;
+  return (flag);
+}
+
+int my_put_nbr(int nb)
+{
+  int div;
+  int flag;
+
+  change_color(COLOR_WHITE);
+
+  div = 1;
+  flag = 0;
+  if (nb < 0)
+  {
+    flag = bool(nb);
+    if (flag == 1)
+      nb = -2147483647;
+    printch('-');
+    nb = 0 - nb;
+  }
+  while ((nb / div) >= 10)
+    div = div * 10;
+  while (div)
+  {
+    if (flag == 1 && div == 1)
+      printch((nb / div) % 10 + 49);
+    if (flag == 0 || (flag == 1 && div != 1))
+      printch((nb / div) % 10 + 48);
+    div = div / 10;
+  }
+  return (0);
+}

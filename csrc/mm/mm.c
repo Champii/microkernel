@@ -10,17 +10,39 @@
 #include                  "system.h"
 #include                  "screen.h"
 #include                  "idt.h"
+#include                  "kmalloc.h"
 #include                  "mm.h"
-
-
-extern unsigned           end;
-unsigned                  placement_address = (unsigned)&end;
 
 t_page_directory          *page_dir = 0;
 t_page_table              *page_table = 0;
 
 unsigned                  *frames;
 unsigned                  nframes;
+
+unsigned                  virt_to_phys(unsigned virt)
+{
+  unsigned                phys;
+  unsigned                offset;
+  unsigned                table_idx;
+
+  offset = virt % 0x1000;
+  virt /= 0x1000;
+  table_idx = virt / 1024;
+
+  phys = (page_dir->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
+  // printk(COLOR_WHITE, "Virt to phys: ");
+  // printk(COLOR_WHITE, my_putnbr_base(virt, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " -> ");
+  // printk(COLOR_WHITE, my_putnbr_base(phys, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+
+  return (phys);
+}
+
+unsigned                  phys_to_virt(unsigned phys)
+{
+  return (0);
+}
 
 static void               set_frame(unsigned frame_addr)
 {
@@ -72,21 +94,6 @@ static unsigned          first_frame()
   return (-1);
 }
 
-void                      *kmalloc(unsigned size)
-{
-  void                    *tmp;
-
-  if (placement_address & 0xFFFFF000)
-  {
-    placement_address &= 0xFFFFF000;
-    placement_address += 0x1000;
-  }
-
-  tmp = (void *)placement_address;
-  placement_address += size;
-  return (tmp);
-}
-
 void                      alloc_page(t_page *page, int is_kernel, int is_writeable)
 {
   if (page->frame != 0)
@@ -119,25 +126,42 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
     return &dir->tables[table_idx]->pages[address%1024];
   else if (make)
   {
-    dir->tables[table_idx] = (t_page_table*)kmalloc(sizeof(t_page_table));
-    memset(dir->tables[table_idx], 0, 0x1000);
-    dir->tablesPhysical[table_idx] = ((unsigned)dir->tables[table_idx]) | 0x3;
+    unsigned              phys;
+
+    dir->tables[table_idx] = (t_page_table*)kmalloc_ap(sizeof(t_page_table), &phys);
+    memset(dir->tables[table_idx], 0, sizeof(t_page_table));
+
+    dir->tablesPhysical[table_idx] = phys | 0x7;
     return &dir->tables[table_idx]->pages[address%1024];
   }
   else
     return 0;
 }
 
-void                      set_page_dir(t_page_directory *new)
+void                      alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable)
 {
-  unsigned                cr0;
+  if (page->frame != 0)
+    return ;
+  else
+  {
+    set_frame(phys);
+    page->present = 1;
+    page->rw = (is_writeable)?1:0;
+    page->user = (is_kernel)?0:1;
+    page->frame = phys / 0x1000;
+  }
+}
 
-  __asm__ volatile("mov %0, %%cr3":: "b"(&new->tablesPhysical));
+void                      initial_map(unsigned virt, unsigned size)
+{
+  int                     i;
 
-  __asm__ volatile("mov %%cr0, %0": "=b"(cr0));
-  cr0 |= 0x80000000; // Enable paging!
-  __asm__ volatile("mov %0, %%cr0":: "b"(cr0));
-
+  i = 0;
+  while (i < size)
+  {
+    alloc_page_at(i, get_page(virt + i, 1, page_dir), 1, 1);
+    i += 0x1000;
+  }
 }
 
 void                      page_fault(t_registers regs)
@@ -164,35 +188,9 @@ void                      page_fault(t_registers regs)
   printk(COLOR_WHITE, "Page fault");
 }
 
-void                      alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable)
-{
-  if (page->frame != 0)
-    return ;
-  else
-  {
-    set_frame(phys);
-    page->present = 1;
-    page->rw = (is_writeable)?1:0;
-    page->user = (is_kernel)?0:1;
-    page->frame = phys / 0x1000;
-  }
-}
-
-void                      initial_map(unsigned virt, unsigned size)
-{
-  int                     i;
-
-  i = 0;
-  while (i < size)
-  {
-    alloc_page_at(i, get_page(virt + i, 1, page_dir), 0, 0);
-    i += 0x1000;
-  }
-}
-
 void                      init_page_dir()
 {
-  int                     i;
+  unsigned                page_dir_phys;
 
   unsigned                mem_end_page = 0xFFFFFFFF;
 
@@ -200,29 +198,20 @@ void                      init_page_dir()
   frames = kmalloc(INDEX_FROM_BIT(nframes));
   memset(frames, 0, INDEX_FROM_BIT(nframes));
 
-  page_dir = kmalloc(sizeof(*page_dir));
+  page_dir = kmalloc_ap(sizeof(*page_dir), &page_dir_phys);
   memset(page_dir, 0, sizeof(*page_dir));
+  page_dir->physicalAddr = page_dir_phys + sizeof(page_dir->tables);
 
   // identity map : Bios and kernel
   initial_map(0x0, 1024 * 0x1000);
 
-  printk(COLOR_WHITE, "Table 1: \n");
-  my_put_nbr(page_dir->tables[0]);
-  printk(COLOR_WHITE, "\n");
-
   // Bios and kernel in high
   initial_map(0xC0000000, 1024 * 0x1000);
-
-  printk(COLOR_WHITE, "Table 2: \n");
-  my_put_nbr(page_dir->tables[768]);
-  printk(COLOR_WHITE, "\n");
-
- for(;;);
 
   // TODO
   // idt_set_gate(14, &page_fault, 0x08, 0x8E);
 
-  set_page_dir(page_dir);
+  __asm__ volatile("mov %0, %%cr3":: "b"(page_dir->physicalAddr));
 }
 
 void                      init_mm()
