@@ -42,6 +42,7 @@ ASM_SRC 			= $(PATH_ASM)/start.S 	\
 								$(PATH_ASM)/idt.S
 
 C_SRC 				= $(PATH_SYSTEM)/system.c \
+								$(PATH_SYSTEM)/list.c		\
 								$(PATH_SCREEN)/screen.c	\
 								$(PATH_MM)/mm.c 				\
 								$(PATH_MM)/kmalloc.c 		\

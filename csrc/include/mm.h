@@ -11,9 +11,17 @@
 #ifndef               __MM_H__
 # define              __MM_H__
 
+# include             "list.h"
+
 #define               INDEX_FROM_BIT(a) (a/(8*4))
 #define               OFFSET_FROM_BIT(a) (a%(8*4))
 
+typedef struct        s_mem_block
+{
+  int                 used;
+  unsigned            size;
+  struct list_head    list;
+}                     t_mem_block;
 
 typedef struct        s_page
 {

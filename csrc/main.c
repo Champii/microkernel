@@ -32,14 +32,16 @@ void          init()
   printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
 }
 
-int           main()
+int           main(void *mboot, int magic)
 {
   // int         *test;
   // int         test2;
 
   init();
 
-  printk(COLOR_RED, "Hello World !\n");
+  printk(COLOR_WHITE, my_putnbr_base(magic, "0123456789ABCDEF"));
+
+  printk(COLOR_RED, "\nHello World !\n");
 
 
   // Page Fault Test

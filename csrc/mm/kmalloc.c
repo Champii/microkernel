@@ -11,9 +11,7 @@
 #include                    "kmalloc.h"
 
 extern unsigned           end;
-// extern unsigned           realend;
 unsigned                  placement_address = (unsigned)&end;
-// unsigned                  real_placement_address = (unsigned)&realend;
 
 void                      *_kmalloc(unsigned size, int align, unsigned *phys)
 {
@@ -23,16 +21,12 @@ void                      *_kmalloc(unsigned size, int align, unsigned *phys)
   {
     placement_address &= 0xFFFFF000;
     placement_address += 0x1000;
-    // real_placement_address &= 0xFFFFF000;
-    // real_placement_address += 0x1000;
   }
   if (phys)
     *phys = placement_address - 0xC0000000;
-    // *phys = virt_to_phys(placement_address);
 
   tmp = (void *)placement_address;
   placement_address += size;
-  // real_placement_address += size;
   return (tmp);
 }
 

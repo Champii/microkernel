@@ -11,6 +11,7 @@
 #include                  "screen.h"
 #include                  "idt.h"
 #include                  "kmalloc.h"
+#include                  "list.h"
 #include                  "mm.h"
 
 t_page_directory          *page_dir = 0;
@@ -18,6 +19,67 @@ t_page_table              *page_table = 0;
 
 unsigned                  *frames;
 unsigned                  nframes;
+
+t_mem_block               *memory = 0;
+
+void                      *phys_alloc(unsigned size)
+{
+  t_mem_block             *tmp;
+  struct list_head        *pos = &memory->list;
+
+  list_for_each(pos, &memory->list)
+  {
+    printk(COLOR_WHITE, "HEAY");
+    tmp = list_entry(pos, t_mem_block, list);
+
+    if (!tmp->used && tmp->size >= size)
+    {
+      tmp->used = 1;
+      tmp->size = size;
+
+      if (tmp->size & 0xFFFFF000)
+      {
+        tmp->size &= 0xFFFFF000;
+        tmp->size += 0x1000;
+      }
+
+      if (tmp->size > size)
+      {
+        t_mem_block       *new;
+
+        new = kmalloc(sizeof(t_mem_block));
+        memset(new, 0, sizeof(t_mem_block));
+
+        list_add_tail(&new->list, &memory->list);
+      }
+    }
+  }
+  return 0;
+}
+
+void                      init_dyn_mem()
+{
+  void                    *test = 0;
+
+  memory = kmalloc(sizeof(t_mem_block));
+  memset(memory, 0, sizeof(t_mem_block));
+
+  INIT_LIST_HEAD(&memory->list);
+  memory->used = 0;
+  memory->size = 0x00100000;
+
+  test = phys_alloc(100);
+
+  printk(COLOR_WHITE, "TEST : ");
+  printk(COLOR_WHITE, my_putnbr_base(test, "0123456789ABCDEF"));
+  printk(COLOR_WHITE, "\n");
+}
+
+void                      alloc_reserved_hard()
+{
+
+}
+
 
 unsigned                  virt_to_phys(unsigned virt)
 {
@@ -217,5 +279,6 @@ void                      init_page_dir()
 void                      init_mm()
 {
   init_page_dir();
+  init_dyn_mem();
 
 }
