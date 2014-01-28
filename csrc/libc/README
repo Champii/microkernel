@@ -1,0 +1,51 @@
+mikro_libc: a minimal libc build upon libmikroc from mikro project, modified
+            for EPITECH Kernel II
+
+Version: 0.1
+See LICENSE and AUTHORS file for their respective information.
+
+
+All standard UNIX functions are placed in their respective headers.
+RPC functions are in folder include/rpc/
+
+
+RPC management functions:
+=> int call_rpc(u64 pid, u32 funcion_id, const char *func_desc, void *ret,
+    u32 ret_size, ...);
+Call an RPC on an other process (normally you DON'T HAVE TO USE THIS FUNCTION)
+ pid: pid of the process to execute the RPC
+ function_id: function id of the RPC
+ func_desc: string signing the RPC function
+ ret: pointer to a memory area where return will be stored
+ ret_size: return size
+ ...: RPC function arguments
+
+=> int register_rpc(struct rpc *rpcs, unsigned size);
+Register rpc exported in current binary
+ rpcs: struct rpc array representing all exported rpc in order of rpc id
+ size: number of rpc exported
+
+struct rpc contains:
+ func_desc: string signing exported function (already provided in rpc_*_desc in
+            include/rpc/*.h)
+ handler: rpc callback function of type:
+          void handler_rpc (u64 sender, void *params, void **ret,
+                            u32 *ret_size);
+  - sender: sender program pid
+  - params: rpc function parameters (one after the other so there is no
+    alignment padding, think about __attribute__((packed)) gcc attribute)
+  - ret: set this pointer to the address of your return (will be freed after)
+  - ret_size: pointer to the size of the return
+
+=> int listen_rpc(void);
+Listen to all exported RPC
+
+
+NOTE: This static library exists in 3 versions:
+        - mikro_libc.a: all functions
+        - mikro_libc_no_start.a: no _start function
+        - mikro_libc_no_mman_no_start.a: no _start function, no mman functions
+
+
+This code is BETA and may be updated.
+Please report any bugs to vaperce@gmail.com
