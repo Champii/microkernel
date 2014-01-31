@@ -15,6 +15,7 @@
 #include      "isrs.h"
 #include      "pic.h"
 #include      "pit.h"
+#include      "keyboard.h"
 
 
 void          init()
@@ -37,6 +38,9 @@ void          init()
 
   init_pit(100);
   printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
+
+  init_keyboard();
+  printk(COLOR_CYAN, "-- Keyboard LOADED -- !\n");
 
 }
 

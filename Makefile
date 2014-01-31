@@ -29,6 +29,7 @@ PATH_INCLUDE  = $(PATH_C)/include
 PATH_SCREEN   = $(PATH_C)/screen
 PATH_MM   		= $(PATH_C)/mm
 PATH_GDT   		= $(PATH_MM)/gdt
+PATH_KEY   		= $(PATH_C)/keyboard
 PATH_IDT   		= $(PATH_C)/idt
 PATH_IRQ   		= $(PATH_C)/irq
 PATH_ISRS			= $(PATH_C)/isrs
@@ -50,6 +51,8 @@ C_SRC 				= $(PATH_SYSTEM)/system.c \
 								$(PATH_MM)/kmalloc.c 		\
 								$(PATH_GDT)/gdt.c 			\
 								$(PATH_C)/main.c 				\
+								$(PATH_KEY)/keyboard.c 	\
+								$(PATH_KEY)/keymap.c 		\
 								$(PATH_IDT)/idt.c 			\
 								$(PATH_IRQ)/irq.c 			\
 								$(PATH_IRQ)/pic.c 			\
