@@ -44,8 +44,21 @@ void          init()
 
 }
 
-int           main()
+int           main(unsigned long magic, unsigned long addr)
 {
+  struct s_multiboot_tag *tag;
+  unsigned    size;
+
+  if (magic != 0x1BADB002)
+  {
+    printk(COLOR_RED, "Bad Magic, System halted.");
+    for (;;);
+  }
+
+  size = *(unsigned *) addr;
+  printk(COLOR_WHITE, "Multiboot header size : ");
+  printk(COLOR_WHITE, my_putnbr_base(size, "01234564789"));
+  printk(COLOR_WHITE, "\n");
 
   init();
 
