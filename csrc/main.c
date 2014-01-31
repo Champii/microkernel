@@ -13,11 +13,18 @@
 #include      "mm.h"
 #include      "idt.h"
 #include      "isrs.h"
+#include      "pic.h"
+#include      "pit.h"
 
 
 void          init()
 {
   clear_screen();
+
+  init_idt();
+  printk(COLOR_CYAN, "-- IDT LOADED -- !\n");
+
+  printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
 
   init_mm();
   printk(COLOR_CYAN, "-- MM LOADED -- !\n");
@@ -25,33 +32,22 @@ void          init()
   init_gdt();
   printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
 
-  init_idt();
-  printk(COLOR_CYAN, "-- IDT LOADED -- !\n");
+  asm volatile("sti");
+  printk(COLOR_CYAN, "-- Enabled interupts -- !\n");
 
-  init_isrs();
-  printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
+  init_pit(100);
+  printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
+
 }
 
-int           main(void *mboot, int magic)
+int           main()
 {
-  // int         *test;
-  // int         test2;
 
   init();
 
-  printk(COLOR_WHITE, my_putnbr_base(magic, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, my_putnbr_base(magic, "0123456789ABCDEF"));
 
   printk(COLOR_RED, "\nHello World !\n");
-
-
-  // Page Fault Test
-  // test = 0xA0000000;
-  // test2 = *test;
-
-  // *test = 1;
-
-  // Div by 0 Fault Test
-  // printk(COLOR_RED, 19/0);
 
   for (;;);
 

@@ -1,60 +1,77 @@
-#include "idt.h"
-#include "isrs.h"
-#include "system.h"
-#include "screen.h"
+#include                  "idt.h"
+#include                  "isrs.h"
+#include                  "irq.h"
+#include                  "system.h"
+#include                  "screen.h"
 
-/* This is a simple string array. It contains the message that
- *  corresponds to each and every exception. We get the correct
- *  message by accessing like:
- *  exception_message[interrupt_number] */
+t_isr                     interrupt_handlers[256];
 
-char *exception_messages[] =
+char                      *exception_messages[] =
+{
+  "Division By Zero",
+  "Debug",
+  "Non Maskable Interrupt",
+  "Breakpoint",
+  "Into Detected Overflow",
+  "Out of Bounds",
+  "Invalid Opcode",
+  "No Coprocessor",
+  "Double Fault",
+  "Coprocessor Segment Overrun",
+  "Bad TSS",
+  "Segment Not Present",
+  "Stack Fault",
+  "General Protection Fault",
+  "Page Fault",
+  "Unknown Interrupt",
+  "Coprocessor Fault",
+  "Alignment Check",
+  "Machine Check",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved",
+  "Reserved"
+};
+
+void                      register_interrupt_handler(unsigned char n, t_isr handler)
+{
+  interrupt_handlers[n] = handler;
+}
+
+void                      isr_handler(struct s_regs *r)
+{
+  if (r->int_no < 32)
   {
-    "Division By Zero",
-    "Debug",
-    "Non Maskable Interrupt",
-    "Breakpoint",
-    "Into Detected Overflow",
-    "Out of Bounds",
-    "Invalid Opcode",
-    "No Coprocessor",
-    "Double Fault",
-    "Coprocessor Segment Overrun",
-    "Bad TSS",
-    "Segment Not Present",
-    "Stack Fault",
-    "General Protection Fault",
-    "Page Fault",
-    "Unknown Interrupt",
-    "Coprocessor Fault",
-    "Alignment Check",
-    "Machine Check",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"
-  };
+    printk(COLOR_RED, exception_messages[r->int_no]);
+    printk(COLOR_RED, " Exception. System Halted!\n");
+    for (;;);
+  }
+}
 
-/* This is a very repetitive function... it's not hard, it's
- *  just annoying. As you can see, we set the first 32 entries
- *  in the IDT to the first 32 ISRs. We can't use a for loop
- *  for this, because there is no way to get the function names
- *  that correspond to that given entry. We set the access
- *  flags to 0x8E. This means that the entry is present, is
- *  running in ring 0 (kernel level), and has the lower 5 bits
- *  set to the required '14', which is represented by 'E' in
- *  hex. */
+void                      irq_handler(struct s_regs *r)
+{
+  if (r->int_no >= 40)
+    outportb(0xA0, 0x20);
 
-void init_isrs()
+  outportb(0x20, 0x20);
+
+  if (interrupt_handlers[r->int_no] != 0)
+  {
+    t_isr handler = interrupt_handlers[r->int_no];
+    handler(*r);
+  }
+}
+
+void                      init_isrs()
 {
   idt_set_gate(0, (unsigned)isr0, 0x08, 0x8E);
   idt_set_gate(1, (unsigned)isr1, 0x08, 0x8E);
@@ -88,23 +105,23 @@ void init_isrs()
   idt_set_gate(29, (unsigned)isr29, 0x08, 0x8E);
   idt_set_gate(30, (unsigned)isr30, 0x08, 0x8E);
   idt_set_gate(31, (unsigned)isr31, 0x08, 0x8E);
+
+  /*IRQ*/
+  idt_set_gate(32, (unsigned)irq0, 0x08, 0x8E);
+  idt_set_gate(33, (unsigned)irq1, 0x08, 0x8E);
+  idt_set_gate(34, (unsigned)irq2, 0x08, 0x8E);
+  idt_set_gate(35, (unsigned)irq3, 0x08, 0x8E);
+  idt_set_gate(36, (unsigned)irq4, 0x08, 0x8E);
+  idt_set_gate(37, (unsigned)irq5, 0x08, 0x8E);
+  idt_set_gate(38, (unsigned)irq6, 0x08, 0x8E);
+  idt_set_gate(39, (unsigned)irq7, 0x08, 0x8E);
+  idt_set_gate(40, (unsigned)irq8, 0x08, 0x8E);
+  idt_set_gate(41, (unsigned)irq9, 0x08, 0x8E);
+  idt_set_gate(42, (unsigned)irq10, 0x08, 0x8E);
+  idt_set_gate(43, (unsigned)irq11, 0x08, 0x8E);
+  idt_set_gate(44, (unsigned)irq12, 0x08, 0x8E);
+  idt_set_gate(45, (unsigned)irq13, 0x08, 0x8E);
+  idt_set_gate(46, (unsigned)irq14, 0x08, 0x8E);
+  idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
 }
 
-
-/* All of our Exception handling Interrupt Service Routines will
- *  point to this function. This will tell us what exception has
- *  happened! Right now, we simply halt the system by hitting an
- *  endless loop. All ISRs disable interrupts while they are being
- *  serviced as a 'locking' mechanism to prevent an IRQ from
- *  happening and messing up kernel data structures */
-
-void fault_handler(struct regs *r)
-{
-  /* Is this a fault whose number is from 0 to 31? */
-  if (r->int_no < 32)
-    {
-      printk(COLOR_RED, exception_messages[r->int_no]);
-      printk(COLOR_RED, " Exception. System Halted!\n");
-      for (;;);
-    }
-}

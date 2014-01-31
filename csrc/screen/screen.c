@@ -141,7 +141,7 @@ int bool(int n)
   return (flag);
 }
 
-int my_put_nbr(int nb)
+int my_put_nbr(unsigned nb)
 {
   int div;
   int flag;

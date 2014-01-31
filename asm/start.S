@@ -23,7 +23,6 @@ MULTIBOOT_CHECKSUM      equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
 ; Higher Half define
 KERNEL_VIRTUAL_BASE equ 0xC0000000                  ; 3GB
-;KERNEL_PAGE_NUMBER equ (KERNEL_VIRTUAL_BASE >> 22)  ; Page directory index of kernel's 4MB PTE.
 KERNEL_PAGE_NUMBER equ (KERNEL_VIRTUAL_BASE >> 22)  ; Page directory index of kernel's 4MB PTE.
 
 STACKSIZE equ 0x4000
@@ -62,19 +61,12 @@ align 0x1000
 
 higherhalf:
 
-  ; Remove old pagedirectory
-;  mov dword [pagedirectory], 0
-;  invlpg [0]
-
-
   ; Setting stack
   mov esp, stack
 
   ; Passing Multiboot info
   push eax                 ; magic number
   push ebx                 ; info structure
-
-;  hlt
 
   call  main
   hlt
@@ -126,20 +118,11 @@ start:
   mov ecx, pagedirectory
   mov cr3, ecx
 
-;  mov ecx, cr4
-;  or ecx, 0x00000010
-;  mov cr4, ecx
-
   mov ecx, cr0
   or ecx, 0x80000000
   mov cr0, ecx
-;  hlt
 
   ; Actualy jump
-;  mov ebx, [pagedirectory + (KERNEL_PAGE_NUMBER * 4)]
-;  shr ebx, 8
-;  shl ebx, 8
-;  mov eax, [ebx + 4]
   lea ebx, [higherhalf]
   jmp ebx
 

@@ -17,19 +17,22 @@ NASM 					= nasm -f elf32
 CC 						= gcc -m32 -g3
 LD 						= ld -m elf_i386 -z max-page-size=0x1000
 RM 						= rm -f
+MAKE 					= make -s
 
 # Paths
 PATH_BUILD		= build
 PATH_C 				= csrc
+PATH_ASM 			= asm
+PATH_LD 			= link
 PATH_SYSTEM 	= $(PATH_C)/system
 PATH_INCLUDE  = $(PATH_C)/include
 PATH_SCREEN   = $(PATH_C)/screen
 PATH_MM   		= $(PATH_C)/mm
 PATH_GDT   		= $(PATH_MM)/gdt
 PATH_IDT   		= $(PATH_C)/idt
-PATH_ASM 			= asm
+PATH_IRQ   		= $(PATH_C)/irq
 PATH_ISRS			= $(PATH_C)/isrs
-PATH_LD 			= link
+PATH_LIBC			= $(PATH_C)/libc
 
 # Cflags
 CFLAGS 				= -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdinc -fno-builtin -I./$(PATH_INCLUDE)
@@ -42,13 +45,15 @@ ASM_SRC 			= $(PATH_ASM)/start.S 	\
 								$(PATH_ASM)/idt.S
 
 C_SRC 				= $(PATH_SYSTEM)/system.c \
-								$(PATH_SYSTEM)/list.c		\
 								$(PATH_SCREEN)/screen.c	\
 								$(PATH_MM)/mm.c 				\
 								$(PATH_MM)/kmalloc.c 		\
 								$(PATH_GDT)/gdt.c 			\
 								$(PATH_C)/main.c 				\
 								$(PATH_IDT)/idt.c 			\
+								$(PATH_IRQ)/irq.c 			\
+								$(PATH_IRQ)/pic.c 			\
+								$(PATH_IRQ)/pit.c 			\
 								$(PATH_ISRS)/isrs.c
 
 # Objs
@@ -71,8 +76,13 @@ ERROR_STRING=$(RED)[ERRORS]$(RESET_COLOR)
 WARN_STRING=$(YELLOW)[WARNINGS]$(RESET_COLOR)
 BUILT_STRING=$(BLUE)[$(BUILT_COLOR)Built !$(BLUE)]$(RESET_COLOR)
 
-all: $(NAME)
+all: lib $(NAME)
 	@echo "\n$(BUILT_STRING)"
+
+lib:
+	@echo "$(BLUE)[Lib]$(RESET_COLOR)"
+	@cd $(PATH_LIBC) && $(MAKE) && cd ../../
+	@echo "\n$(BLUE)[Source]$(RESET_COLOR)"
 
 $(NAME): $(ASM_OBJ) $(C_OBJ)
 	@echo -n "\n$(BLUE)[Linking]$(RESET_COLOR)"
@@ -80,6 +90,7 @@ $(NAME): $(ASM_OBJ) $(C_OBJ)
 
 clean:
 	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
+	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
 	@if $(RM) $(ASM_OBJ) $(C_OBJ); then printf "%24s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 
 fclean: clean

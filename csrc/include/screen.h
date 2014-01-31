@@ -34,7 +34,7 @@
 # define              COLOR_WHITE           15
 
 void                  printk(int color, char *str);
-int                   my_put_nbr(int nb);
+int                   my_put_nbr(unsigned nb);
 char                  *my_putnbr_base(unsigned nbr, char *base);
 void                  clear_screen();
 

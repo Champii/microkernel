@@ -9,9 +9,15 @@
 ************************************************/
 
 #include                  "gdt.h"
+#include                  "system.h"
+#include                  "kmalloc.h"
 
-struct s_gdt_entry        gdt[3];
+struct s_gdt_entry        gdt[5];
 struct s_gdt_pseudo_desc  gdt_desc;
+
+struct s_tss              tss_entry;
+
+extern void               flush_tss();
 
 void                      init_segment(int seg_num, unsigned long base, unsigned long limit, unsigned char granularity, unsigned char access)
 {
@@ -27,19 +33,49 @@ void                      init_segment(int seg_num, unsigned long base, unsigned
   gdt[seg_num].access = access;
 }
 
+static void               write_tss(int num, unsigned short ss0, unsigned esp0)
+{
+  unsigned                base;
+  unsigned                limit;
+
+  // tss_entry = kmalloc(sizeof(*tss_entry));
+
+  base = (unsigned) &tss_entry;
+  limit = base + sizeof(tss_entry);
+
+  init_segment(num, base, limit, 0x00, 0xE9);
+  memset(&tss_entry, 0, sizeof(tss_entry));
+
+  tss_entry.ss0  = ss0;
+  tss_entry.esp0 = esp0;
+
+  // tss_entry.cs   = 0x0b;
+  // tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
+}
+
 void                      init_gdt()
 {
-  gdt_desc.limit = (sizeof(struct s_gdt_entry) * 3) - 1;
+  gdt_desc.limit = (sizeof(struct s_gdt_entry) * 6) - 1;
   gdt_desc.base = (unsigned int)&gdt;
 
   /* Null segment */
   init_segment(0, 0, 0, 0, 0);
 
+  /*Ring 0*/
   /* Code segment */
   init_segment(1, BASE, LIMIT, 0xC, 0x9A);
-
   /* Data segment */
   init_segment(2, BASE, LIMIT, 0xC, 0x92);
 
+  /*Ring 3*/
+  /* Code segment */
+  init_segment(3, BASE, LIMIT, 0xC, 0xFA);
+  /* Data segment */
+  init_segment(4, BASE, LIMIT, 0xC, 0xF2);
+
+  /*TSS*/
+  write_tss(5, 0x10, 0x0);
+
   flush_gdt();
+  flush_tss();
 }
