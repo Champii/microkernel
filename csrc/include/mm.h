@@ -57,7 +57,7 @@ unsigned              phys_to_virt(unsigned phys);
 
 void                  init_mm();
 t_page                *get_page(unsigned, int, t_page_directory *);
-
+t_page_directory      *clone_directory(t_page_directory *src);
 /*LOOK stos (asm) => page table*/
 
 #endif                /*__MM_H__*/

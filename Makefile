@@ -24,6 +24,8 @@ PATH_BUILD		= build
 PATH_C 				= csrc
 PATH_ASM 			= asm
 PATH_LD 			= link
+PATH_PROCESS 	= $(PATH_C)/process
+PATH_SERVICES = $(PATH_C)/services
 PATH_SYSTEM 	= $(PATH_C)/system
 PATH_INCLUDE  = $(PATH_C)/include
 PATH_SCREEN   = $(PATH_C)/screen
@@ -43,20 +45,25 @@ LD_SRC 				= $(PATH_LD)/link.ld
 
 ASM_SRC 			= $(PATH_ASM)/start.S 	\
 								$(PATH_ASM)/gdt.S 		\
+								$(PATH_ASM)/process.S \
 								$(PATH_ASM)/idt.S
 
-C_SRC 				= $(PATH_SYSTEM)/system.c \
-								$(PATH_SCREEN)/screen.c	\
-								$(PATH_MM)/mm.c 				\
-								$(PATH_MM)/kmalloc.c 		\
-								$(PATH_GDT)/gdt.c 			\
-								$(PATH_C)/main.c 				\
-								$(PATH_KEY)/keyboard.c 	\
-								$(PATH_KEY)/keymap.c 		\
-								$(PATH_IDT)/idt.c 			\
-								$(PATH_IRQ)/irq.c 			\
-								$(PATH_IRQ)/pic.c 			\
-								$(PATH_IRQ)/pit.c 			\
+C_SRC 				= $(PATH_SYSTEM)/system.c 			\
+								$(PATH_SYSTEM)/syscall.c 			\
+								$(PATH_SYSTEM)/process.c 			\
+								$(PATH_PROCESS)/task.c 				\
+								$(PATH_SERVICES)/services.c 	\
+								$(PATH_SCREEN)/screen.c				\
+								$(PATH_MM)/mm.c 							\
+								$(PATH_MM)/kmalloc.c 					\
+								$(PATH_GDT)/gdt.c 						\
+								$(PATH_C)/main.c 							\
+								$(PATH_KEY)/keyboard.c 				\
+								$(PATH_KEY)/keymap.c 					\
+								$(PATH_IDT)/idt.c 						\
+								$(PATH_IRQ)/irq.c 						\
+								$(PATH_IRQ)/pic.c 						\
+								$(PATH_IRQ)/pit.c 						\
 								$(PATH_ISRS)/isrs.c
 
 # Objs
@@ -79,7 +86,7 @@ ERROR_STRING=$(RED)[ERRORS]$(RESET_COLOR)
 WARN_STRING=$(YELLOW)[WARNINGS]$(RESET_COLOR)
 BUILT_STRING=$(BLUE)[$(BUILT_COLOR)Built !$(BLUE)]$(RESET_COLOR)
 
-all: lib $(NAME)
+all: $(NAME)
 	@echo "\n$(BUILT_STRING)"
 
 lib:
@@ -93,13 +100,13 @@ $(NAME): $(ASM_OBJ) $(C_OBJ)
 
 clean:
 	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
-	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
 	@if $(RM) $(ASM_OBJ) $(C_OBJ); then printf "%24s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 
 fclean: clean
+	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
+	@cd $(PATH_BUILD)/..
 	@echo -n "\n$(BLUE)[Full Cleaning]$(RESET_COLOR)"
 	@if	$(RM) $(PATH_BUILD)/$(NAME); then printf "%19s" " -> ";  echo '$(OK_STRING)\n'; else  echo '$(ERROR_STRING)'; fi
-
 
 re: fclean all
 
@@ -127,10 +134,10 @@ install: $(NAME)
 	sudo losetup -d /dev/loop1
 	sudo losetup -d /dev/loop0
 
-# mountdisk:
-# 	sudo losetup -f build/disk.img
-# 	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
-# 	sudo mount /dev/loop1 /mnt
+mountdisk:
+	sudo losetup -f build/disk.img
+	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
+	sudo mount /dev/loop1 /mnt
 
 umountdisk:
 	sudo umount /mnt

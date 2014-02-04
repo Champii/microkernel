@@ -33,4 +33,11 @@ SECTIONS
     . = ALIGN(4096);
   }
   end = .;
+
+  /DISCARD/ :
+  {
+    *(.comments)
+    *(.note.GNU-stack)
+    *(.gnu_debuglink)
+  }
 }

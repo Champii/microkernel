@@ -13,19 +13,20 @@
 
 ; Global definitions
 global start
-extern main
+extern cmain
 
 ; Multiboot define
 MULTIBOOT_PAGE_ALIGN    equ 1<<0
+MULTIBOOT_MEMINFO       equ  1<<1
 MULTIBOOT_HEADER_MAGIC  equ 0x1BADB002
-MULTIBOOT_HEADER_FLAGS  equ MULTIBOOT_PAGE_ALIGN
+MULTIBOOT_HEADER_FLAGS  equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMINFO
 MULTIBOOT_CHECKSUM      equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
 ; Higher Half define
 KERNEL_VIRTUAL_BASE equ 0xC0000000                  ; 3GB
 KERNEL_PAGE_NUMBER equ (KERNEL_VIRTUAL_BASE >> 22)  ; Page directory index of kernel's 4MB PTE.
 
-STACKSIZE equ 0x4000
+STACKSIZE equ 0x2000
 
 ;
 ; SECTION .multiboot
@@ -35,6 +36,7 @@ STACKSIZE equ 0x4000
 section .multiboot
 
 multibootheader:
+  align 4
 
   dd MULTIBOOT_HEADER_MAGIC
   dd MULTIBOOT_HEADER_FLAGS
@@ -65,10 +67,11 @@ higherhalf:
   mov esp, stack
 
   ; Passing Multiboot info
-  push eax                 ; magic number
+  push esp                 ; stack address
   push ebx                 ; info structure
+  push eax                 ; magic number
 
-  call  main
+  call  cmain
   hlt
 
 ;
@@ -105,14 +108,17 @@ pagedirectory:
 
 start:
 
+;  cmp eax, 0x1BADB002
+;  jne .bad
+
   ; Init GDT
   lgdt [trickgdt]
-  mov ax, 0x10
-  mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
-  mov ss, ax
+  mov dx, 0x10
+  mov ds, dx
+  mov es, dx
+  mov fs, dx
+  mov gs, dx
+  mov ss, dx
 
   ; Init PageDirectory
   mov ecx, pagedirectory
@@ -123,8 +129,12 @@ start:
   mov cr0, ecx
 
   ; Actualy jump
-  lea ebx, [higherhalf]
-  jmp ebx
+  lea ecx, [higherhalf]
+  jmp ecx
+
+.bad:
+  cli
+  hlt
 
 trickgdt:
   dw gdt_end - gdt - 1  ; size of the GDT

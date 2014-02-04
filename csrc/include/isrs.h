@@ -45,7 +45,7 @@ struct                    s_regs
 };
 
 
-typedef void (*t_isr)(struct s_regs);
+typedef void (*t_isr)(struct s_regs *);
 
 void                      init_isrs();
 void                      isr_handler(struct s_regs *r);

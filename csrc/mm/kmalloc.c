@@ -9,11 +9,12 @@
 ************************************************/
 #include                    "mm.h"
 #include                    "kmalloc.h"
+#include                    "screen.h"
 
 extern unsigned           end;
 unsigned                  placement_address = (unsigned)&end;
 
-void                      *_kmalloc(unsigned size, int align, unsigned *phys)
+static void               *_kmalloc(unsigned size, int align, unsigned *phys)
 {
   void                    *tmp;
 
@@ -27,6 +28,10 @@ void                      *_kmalloc(unsigned size, int align, unsigned *phys)
 
   tmp = (void *)placement_address;
   placement_address += size;
+
+  // printk(COLOR_WHITE, "KMALLOC = ");
+  // printk(COLOR_WHITE, my_putnbr_base(size, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
   return (tmp);
 }
 

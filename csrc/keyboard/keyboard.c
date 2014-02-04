@@ -15,7 +15,7 @@
 #include              "keymap.h"
 #include              "screen.h"
 
-static void           keyboard_callback(struct s_regs regs)
+static void           keyboard_callback(struct s_regs *regs)
 {
   unsigned            keycode;
   char                c[1];

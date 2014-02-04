@@ -67,7 +67,7 @@ void                      irq_handler(struct s_regs *r)
   if (interrupt_handlers[r->int_no] != 0)
   {
     t_isr handler = interrupt_handlers[r->int_no];
-    handler(*r);
+    handler(r);
   }
 }
 

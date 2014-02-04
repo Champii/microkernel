@@ -14,10 +14,14 @@
 #include                  "mm.h"
 
 t_page_directory          *page_dir = 0;
+t_page_directory          *cur_dir=0;
 t_page_table              *page_table = 0;
 
 unsigned                  *frames;
 unsigned                  nframes;
+
+
+extern void               copy_page_physical(unsigned src, unsigned dest);
 
 // t_mem_block               *memory = 0;
 
@@ -91,11 +95,6 @@ unsigned                  virt_to_phys(unsigned virt)
   table_idx = virt / 1024;
 
   phys = (page_dir->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
-  // printk(COLOR_WHITE, "Virt to phys: ");
-  // printk(COLOR_WHITE, my_putnbr_base(virt, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " -> ");
-  // printk(COLOR_WHITE, my_putnbr_base(phys, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
 
   return (phys);
 }
@@ -218,11 +217,79 @@ void                      initial_map(unsigned virt, unsigned size)
   int                     i;
 
   i = 0;
-  while (i < size)
+  while (i < size + 0x1000)
   {
     alloc_page_at(i, get_page(virt + i, 1, page_dir), 1, 1);
     i += 0x1000;
   }
+}
+
+
+static t_page_table       *clone_table(t_page_table *src, unsigned int *physAddr)
+{
+  // Make a new page table, which is page aligned.
+  int                     i;
+  t_page_table            *table = kmalloc_ap(sizeof(t_page_table), physAddr);
+  // Ensure that the new table is blank.
+  memset(table, 0, sizeof(t_page_directory));
+
+  // For every entry in the table...
+  for (i = 0; i < 1024; i++)
+  {
+    // If the source entry has a frame associated with it...
+    if (src->pages[i].frame)
+    {
+      // Get a new frame.
+      alloc_page(&table->pages[i], 0, 0);
+      // Clone the flags from source to destination.
+      if (src->pages[i].present) table->pages[i].present = 1;
+      if (src->pages[i].rw) table->pages[i].rw = 1;
+      if (src->pages[i].user) table->pages[i].user = 1;
+      if (src->pages[i].accessed) table->pages[i].accessed = 1;
+      if (src->pages[i].dirty) table->pages[i].dirty = 1;
+      // Physically copy the data across. This function is in process.s.
+      copy_page_physical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
+    }
+  }
+  return table;
+}
+
+t_page_directory          *clone_directory(t_page_directory *src)
+{
+  unsigned int          phys;
+  // Make a new page directory and obtain its physical address.
+  t_page_directory      *dir = (t_page_directory*)kmalloc_ap(sizeof(t_page_directory), &phys);
+  // Ensure that it is blank.
+  memset(dir, 0, sizeof(t_page_directory));
+
+  // Get the offset of tablesPhysical from the start of the t_page_directory structure.
+  unsigned int offset = (unsigned int)dir->tablesPhysical - (unsigned int)dir;
+
+  // Then the physical address of dir->tablesPhysical is:
+  dir->physicalAddr = phys + offset;
+
+  // Go through each page table. If the page table is in the kernel directory, do not make a new copy.
+  int i;
+  for (i = 0; i < 1024; i++)
+  {
+    if (!src->tables[i])
+      continue;
+
+    if (page_dir->tables[i] == src->tables[i])
+    {
+      // It's in the kernel, so just use the same pointer.
+      dir->tables[i] = src->tables[i];
+      dir->tablesPhysical[i] = src->tablesPhysical[i];
+    }
+    else
+    {
+      // Copy the table.
+      unsigned int phys;
+      dir->tables[i] = clone_table(src->tables[i], &phys);
+      dir->tablesPhysical[i] = phys | 0x07;
+    }
+  }
+  return dir;
 }
 
 void                      page_fault(t_registers regs)
@@ -236,7 +303,7 @@ void                      page_fault(t_registers regs)
 
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-  printk(COLOR_WHITE, "Page fault! ( ");
+  printk(COLOR_WHITE, "\nPage fault! ( ");
 
   if (present) {printk(COLOR_WHITE, "present ");}
   if (rw) {printk(COLOR_WHITE, "read-only ");}
@@ -244,9 +311,13 @@ void                      page_fault(t_registers regs)
   if (reserved) {printk(COLOR_WHITE, "reserved ");}
 
   printk(COLOR_WHITE, ") at 0x");
-  // printk_COLOR_WHITE, hex(faulting_address);
+  printk(COLOR_WHITE, my_putnbr_base(faulting_address, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault");
+
+  // alloc_page(get_page(faulting_address, 1, cur_dir), 0, 1);
+
+  for(;;);
 }
 
 void                      init_page_dir()
@@ -270,10 +341,17 @@ void                      init_page_dir()
   initial_map(0xC0000000, 1024 * 0x1000);
 
   // TODO
-  // idt_set_gate(14, &page_fault, 0x08, 0x8E);
+  idt_set_gate(14, &page_fault, 0x08, 0x8E);
+  // register_interrupt_handler(14, &page_fault);
 
-  __asm__ volatile("mov %0, %%cr3":: "b"(page_dir->physicalAddr));
+  // __asm__ volatile("mov %0, %%cr3":: "b"(page_dir->physicalAddr));
+
+  cur_dir = clone_directory(page_dir);
+
+  __asm__ volatile("mov %0, %%cr3":: "b"(cur_dir->physicalAddr));
 }
+
+
 
 void                      init_mm()
 {

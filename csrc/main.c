@@ -7,6 +7,8 @@
 * Florian Greiner <florian.greiner@epitech.eu>
 *
 ************************************************/
+
+#include      "multiboot.h"
 #include      "system.h"
 #include      "screen.h"
 #include      "gdt.h"
@@ -15,17 +17,22 @@
 #include      "isrs.h"
 #include      "pic.h"
 #include      "pit.h"
+#include      "task.h"
+#include      "syscall.h"
 #include      "keyboard.h"
+#include      "services.h"
 
+unsigned      initial_esp;
 
-void          init()
+void          init(unsigned long multiboot_addr)
 {
+  struct s_multiboot_info *info;
+  info = (struct s_multiboot_info *) multiboot_addr;
+
   clear_screen();
 
   init_idt();
-  printk(COLOR_CYAN, "-- IDT LOADED -- !\n");
-
-  printk(COLOR_CYAN, "-- ISRS LOADED -- !\n");
+  printk(COLOR_CYAN, "-- IDT && ISRS LOADED -- !\n");
 
   init_mm();
   printk(COLOR_CYAN, "-- MM LOADED -- !\n");
@@ -39,32 +46,48 @@ void          init()
   init_pit(100);
   printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
 
+  init_syscalls();
+  printk(COLOR_CYAN, "-- Syscalls LOADED -- !\n");
+
+  init_tasking();
+  printk(COLOR_CYAN, "-- Tasking LOADED -- !\n");
+
+  init_services(info->mods_count, (struct s_multiboot_module *) info->mods_addr);
+  printk(COLOR_CYAN, "-- Services LOADED -- !\n");
+
   init_keyboard();
   printk(COLOR_CYAN, "-- Keyboard LOADED -- !\n");
 
+
 }
 
-int           main(unsigned long magic, unsigned long addr)
+int           cmain(unsigned long magic, unsigned long addr, unsigned start_stack)
 {
-  struct s_multiboot_tag *tag;
-  unsigned    size;
 
-  if (magic != 0x1BADB002)
+  if (magic != 0x2BADB002)
   {
-    printk(COLOR_RED, "Bad Magic, System halted.");
+    printk(COLOR_RED, "Bad Magic, System halted.\n");
     for (;;);
   }
 
-  size = *(unsigned *) addr;
-  printk(COLOR_WHITE, "Multiboot header size : ");
-  printk(COLOR_WHITE, my_putnbr_base(size, "01234564789"));
-  printk(COLOR_WHITE, "\n");
+  if (addr & 7)
+  {
+    printk(COLOR_RED, "Unaligned mbi = ");
+    printk(COLOR_RED, my_putnbr_base(addr, "0123456789ABCDEF"));
+    printk(COLOR_RED, "\n");
+    return -1;
+  }
 
-  init();
+  initial_esp = start_stack;
 
-  // printk(COLOR_WHITE, my_putnbr_base(magic, "0123456789ABCDEF"));
+  init(addr);
 
-  printk(COLOR_RED, "\nHello World !\n");
+  int ret = fork();
+
+  // printk(COLOR_RED, "Fork return = ");
+  // printk(COLOR_RED, my_putnbr_base(ret, "0123456789"));
+  // printk(COLOR_RED, "\nHello World !\n");
+
 
   for (;;);
 
