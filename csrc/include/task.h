@@ -12,6 +12,7 @@
 # define              __TASK_H__
 
 # include             "mm.h"
+# include             "isrs.h"
 
 // This structure defines a 'task' - a process.
 typedef struct        task
@@ -27,7 +28,7 @@ typedef struct        task
 void                  init_tasking();
 
 // Called by the timer hook, this changes the running process.
-void                  switch_task();
+void                  switch_task(struct s_regs *regs);
 
 // Forks the current process, spawning a new one with a different
 // memory space.

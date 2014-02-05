@@ -38,6 +38,7 @@ extern void               isr31();
 
 struct                    s_regs
 {
+  // unsigned                eax2;
   unsigned                gs, fs, es, ds;      /* pushed the segs last */
   unsigned                edi, esi, ebp, esp, ebx, edx, ecx, eax;  /* pushed by 'pusha' */
   unsigned                int_no, err_code;    /* our 'push byte #' and ecodes do this */

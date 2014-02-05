@@ -1,8 +1,16 @@
 [GLOBAL read_eip]
 read_eip:
-    pop eax                     ; Get the return address
-    jmp eax                     ; Return. Can't use RET because return
-                                ; address popped off the stack.
+   pop eax                     ; Get the return address
+   jmp eax                     ; Return. Cant use RET because return
+    ;   mov eax, [esp]
+    ;   ret                                ; address popped off the stack.
+
+
+;   [GLOBAL read_eip]
+;   read_eip:
+;       pop eax                     ; Get the return address
+;       jmp eax                     ; Return. Cant use RET because return
+;                                   ; address popped off the stack.
 
 section .setup
 [GLOBAL copy_page_physical]
@@ -10,7 +18,7 @@ copy_page_physical:
     push ebx              ; According to __cdecl, we must preserve the contents of EBX.
     pushf                 ; push EFLAGS, so we can pop it and reenable interrupts
                           ; later, if they were enabled anyway.
-    cli                   ; Disable interrupts, so we aren't interrupted.
+    cli                   ; Disable interrupts, so we arent interrupted.
                           ; Load these in BEFORE we disable paging!
     mov ebx, [esp+12]     ; Source address
     mov ecx, [esp+16]     ; Destination address

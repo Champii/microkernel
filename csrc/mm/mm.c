@@ -12,6 +12,7 @@
 #include                  "idt.h"
 #include                  "kmalloc.h"
 #include                  "mm.h"
+#include                  "isrs.h"
 
 t_page_directory          *page_dir = 0;
 t_page_directory          *cur_dir=0;
@@ -219,7 +220,7 @@ void                      initial_map(unsigned virt, unsigned size)
   i = 0;
   while (i < size + 0x1000)
   {
-    alloc_page_at(i, get_page(virt + i, 1, page_dir), 1, 1);
+    alloc_page_at(i, get_page(virt + i, 1, page_dir), 0, 1);
     i += 0x1000;
   }
 }
@@ -292,14 +293,22 @@ t_page_directory          *clone_directory(t_page_directory *src)
   return dir;
 }
 
-void                      page_fault(t_registers regs)
+void                      invalid_opcode(struct s_regs *regs)
+{
+  printk(COLOR_RED, "INVALID OPCODE AT : 0x");
+  printk(COLOR_RED, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
+  printk(COLOR_RED, "\n");
+  for(;;);
+}
+
+void                      page_fault(struct s_regs *regs)
 {
   unsigned              faulting_address;
 
-  int                   present = !(regs.err_code & 0x1);
-  int                   rw = regs.err_code & 0x2;
-  int                   us = regs.err_code & 0x4;
-  int                   reserved = regs.err_code & 0x8;
+  int                   present = !(regs->err_code & 0x1);
+  int                   rw = regs->err_code & 0x2;
+  int                   us = regs->err_code & 0x4;
+  int                   reserved = regs->err_code & 0x8;
 
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
@@ -341,6 +350,7 @@ void                      init_page_dir()
   initial_map(0xC0000000, 1024 * 0x1000);
 
   // TODO
+  idt_set_gate(6, &invalid_opcode, 0x08, 0x8E);
   idt_set_gate(14, &page_fault, 0x08, 0x8E);
   // register_interrupt_handler(14, &page_fault);
 

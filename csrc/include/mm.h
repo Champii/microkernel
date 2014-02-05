@@ -44,13 +44,13 @@ typedef struct        s_page_directory
   unsigned            physicalAddr;
 }                     t_page_directory;
 
-typedef struct        s_registers
-{
-  unsigned            ds;                  // Data segment selector
-  unsigned            edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha.
-  unsigned            int_no, err_code;    // Interrupt number and error code (if applicable)
-  unsigned            eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
-}                     t_registers;
+// typedef struct        s_registers
+// {
+//   unsigned            ds;                  // Data segment selector
+//   unsigned            edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha.
+//   unsigned            int_no, err_code;    // Interrupt number and error code (if applicable)
+//   unsigned            eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
+// }                     t_registers;
 
 unsigned              virt_to_phys(unsigned virt);
 unsigned              phys_to_virt(unsigned phys);
