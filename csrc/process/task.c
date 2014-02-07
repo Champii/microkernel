@@ -15,9 +15,9 @@
 #include                  "system.h"
 #include                  "screen.h"
 
-volatile t_task *current_task;
+t_task *current_task;
 
-volatile t_task *ready_queue;
+t_task *ready_queue;
 
 extern t_page_directory *page_dir;
 extern t_page_directory *cur_dir;
@@ -111,65 +111,76 @@ void switch_task(struct s_regs *regs)
 // return ;
 
     // Read esp, ebp now for saving later on.
-    unsigned esp, ebp, eip;
-    asm volatile("mov %%esp, %0" : "=r"(esp));
-    asm volatile("mov %%ebp, %0" : "=r"(ebp));
+    // unsigned esp, ebp, eip;
+    // asm volatile("mov %%esp, %0" : "=r"(esp));
+    // asm volatile("mov %%ebp, %0" : "=r"(ebp));
 
 
-    eip = read_eip();
+    // eip = read_eip();
 
-    if (eip != 0x12345)
-      printk(COLOR_BLUE, "Current process values : \n");
-    else
-      printk(COLOR_BLUE, "Switched process values : \n");
+    // if (eip != 0x12345)
+    //   printk(COLOR_BLUE, "Current process values : \n");
+    // else
+    //   printk(COLOR_BLUE, "Switched process values : \n");
 
-    printk(COLOR_BLUE, "INT NB = ");
-    printk(COLOR_BLUE, my_putnbr_base(regs->int_no, "0123456789"));
-    printk(COLOR_BLUE, "\n");
-    printk(COLOR_BLUE, "ESP = ");
-    printk(COLOR_BLUE, my_putnbr_base(regs->esp, "0123456789ABCDEF"));
-    printk(COLOR_BLUE, "\n");
-    printk(COLOR_BLUE, "EBP = ");
-    printk(COLOR_BLUE, my_putnbr_base(regs->ebp, "0123456789ABCDEF"));
-    printk(COLOR_BLUE, "\n");
-    printk(COLOR_BLUE, "EIP = ");
-    printk(COLOR_BLUE, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
-    printk(COLOR_BLUE, "\n");
-    printk(COLOR_BLUE, "EIP = ");
-    printk(COLOR_BLUE, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
-    printk(COLOR_BLUE, "\n");
+    // printk(COLOR_BLUE, "INT NB = ");
+    // // printk(COLOR_BLUE, my_putnbr_base(regs->int_no, "0123456789"));
+    // printk(COLOR_BLUE, "\n");
+    // printk(COLOR_BLUE, "ESP = ");
+    // // printk(COLOR_BLUE, my_putnbr_base(regs->esp, "0123456789ABCDEF"));
+    // printk(COLOR_BLUE, "\n");
+    // printk(COLOR_BLUE, "EBP = ");
+    // // printk(COLOR_BLUE, my_putnbr_base(regs->ebp, "0123456789ABCDEF"));
+    // printk(COLOR_BLUE, "\n");
+    // printk(COLOR_BLUE, "EIP = ");
+    // // printk(COLOR_BLUE, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
+    // printk(COLOR_BLUE, "\n");
 
 
 
-    if (eip == 0x12345)
-        return;
+    // if (eip == 0x12345)
+    //     return;
 
-    current_task->eip = regs->eip;
-    current_task->esp = regs->esp;
-    current_task->ebp = regs->ebp;
+    memcpy(&current_task->regs, regs, sizeof (*regs));
+    // current_task->regs = *regs;
+
+    // current_task->eip = regs->eip;
+    // current_task->esp = regs->esp;
+    // current_task->ebp = regs->ebp;
 
     current_task = current_task->next;
 
     if (!current_task)
       current_task = ready_queue;
 
-    eip = current_task->eip;
-    esp = current_task->esp;
-    ebp = current_task->ebp;
+    // eip = current_task->eip;
+    // esp = current_task->esp;
+    // ebp = current_task->ebp;
+
+
+    if (!current_task->regs.eip)
+    {
+      memcpy(&current_task->regs, regs, sizeof (*regs));
+
+      // current_task->eip = regs->eip;
+      // current_task->esp = regs->esp;
+      // current_task->ebp = regs->ebp;
+      current_task->regs.eip = current_task->eip;
+      current_task->regs.esp = current_task->esp;
+      current_task->regs.ebp = current_task->ebp;
+    }
+
+    memcpy(regs, &current_task->regs, sizeof (*regs));
+    // *regs = current_task->regs;
 
 
     cur_dir = current_task->page_directory;
 
-    asm volatile("         \
-      cli;                 \
-      mov %0, %%ecx;       \
-      mov %1, %%esp;       \
-      mov %2, %%ebp;       \
-      mov %3, %%cr3;       \
-      mov $0x12345, %%eax; \
-      sti;                 \
-      jmp *%%ecx           "
-                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(cur_dir->physicalAddr));
+    asm volatile(
+      "mov %0, %%cr3"
+      : : "r"(cur_dir->physicalAddr));
+
+
 }
 
 int fork()
@@ -194,8 +205,10 @@ int fork()
     new_task->next = 0;
 
     t_task *tmp_task = (t_task*)ready_queue;
+
     while (tmp_task->next)
-        tmp_task = tmp_task->next;
+      tmp_task = tmp_task->next;
+
     tmp_task->next = new_task;
 
     unsigned eip = read_eip();

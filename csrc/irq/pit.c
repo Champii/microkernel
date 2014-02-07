@@ -19,7 +19,7 @@ unsigned                  tick = 0;
 
 static void timer_callback(struct s_regs *regs)
 {
-       printk(COLOR_BLUE, "INT NB = ");
+       // printk(COLOR_BLUE, "INT NB = ");
 
    tick++;
    switch_task(regs);

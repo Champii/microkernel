@@ -21,6 +21,7 @@
 #include      "syscall.h"
 #include      "keyboard.h"
 #include      "services.h"
+#include      "syscall.h"
 
 unsigned      initial_esp;
 
@@ -86,12 +87,19 @@ int           cmain(unsigned long magic, unsigned long addr, unsigned start_stac
   printk(COLOR_WHITE, "Initial esp = ");
   printk(COLOR_WHITE, my_putnbr_base(initial_esp, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
-  int ret = fork();
+
+  __asm__ ("       \
+    mov 0, %%eax;  \
+    int $0x80;"
+    : : );
+
+  printk(COLOR_RED, "Hello World ! From : ");
+  printk(COLOR_RED, my_putnbr_base(getpid(), "0123456789"));
+  printk(COLOR_RED, "\n");
+  // int ret = fork();
 
   // printk(COLOR_RED, "Fork return = ");
   // printk(COLOR_RED, my_putnbr_base(ret, "0123456789"));
-  printk(COLOR_RED, "\nHello World !\n");
-
 
   for (;;);
 

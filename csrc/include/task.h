@@ -20,6 +20,7 @@ typedef struct        task
   int                 id;               // Process ID.
   unsigned            esp, ebp;         // Stack and base pointers.
   unsigned            eip;              // Instruction pointer.
+  struct s_regs       regs;
   t_page_directory    *page_directory;  // Page directory.
   struct task         *next;            // The next task in a linked list.
 }                     t_task;

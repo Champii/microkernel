@@ -347,11 +347,11 @@ void                      init_page_dir()
   initial_map(0x0, 1024 * 0x1000);
 
   // Bios and kernel in high
-  initial_map(0xC0000000, 1024 * 0x1000);
+  initial_map(0xC0000000, 0x10000000);
 
   // TODO
-  idt_set_gate(6, &invalid_opcode, 0x08, 0x8E);
-  idt_set_gate(14, &page_fault, 0x08, 0x8E);
+  idt_set_gate(6, (unsigned)&invalid_opcode, 0x08, 0x8E);
+  idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
   // register_interrupt_handler(14, &page_fault);
 
   // __asm__ volatile("mov %0, %%cr3":: "b"(page_dir->physicalAddr));

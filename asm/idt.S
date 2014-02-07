@@ -55,6 +55,8 @@ ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
 
+# ISR_NOERRCODE 128
+
 extern isr_handler
 
 ;;  This is our common ISR stub. It saves the processor state, sets
@@ -147,3 +149,35 @@ irq_common_stub:
   add esp, 8
   iret
 
+
+global syscall_asm
+[EXTERN syscall_handler]
+syscall_asm:
+  pusha
+
+  push ds
+  push es
+  push fs
+  push gs
+
+
+  mov ax, 0x10
+  mov ds, ax
+  mov es, ax
+  mov fs, ax
+  mov gs, ax
+  mov eax, esp
+
+  push eax
+
+  mov eax, syscall_handler
+  call eax
+
+  pop eax
+  pop gs
+  pop fs
+  pop es
+  pop ds
+  popa
+;  add esp, 8
+  ret
