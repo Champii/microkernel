@@ -150,7 +150,13 @@ irq_common_stub:
   iret
 
 
-global syscall_asm
+global syscall
+syscall:
+  cli
+  push byte 0
+  push byte 0
+  jmp syscall_asm
+
 [EXTERN syscall_handler]
 syscall_asm:
   pusha
@@ -179,5 +185,5 @@ syscall_asm:
   pop es
   pop ds
   popa
-;  add esp, 8
-  ret
+  add esp, 8
+;  ret

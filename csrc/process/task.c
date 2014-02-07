@@ -29,26 +29,16 @@ unsigned next_pid = 1;
 
 void init_tasking()
 {
-    asm volatile("cli");
+  asm volatile("cli");
 
-    // Relocate the stack so we know where it is.
-    // move_stack((void*)0xE0000000, 0x2000);
+  // move_stack((void*)0xE0000000, 0x2000);
 
-    // Initialise the first task (kernel task)
-    // unsigned esp, ebp;
-    // asm volatile("mov %%esp, %0" : "=r"(esp));
-    // asm volatile("mov %%ebp, %0" : "=r"(ebp));
+  current_task = ready_queue = (t_task*)kmalloc(sizeof(t_task));
+  current_task->id = next_pid++;
+  current_task->page_directory = cur_dir;
+  current_task->next = 0;
 
-    current_task = ready_queue = (t_task*)kmalloc(sizeof(t_task));
-    current_task->id = next_pid++;
-    // current_task->esp = esp;
-    // current_task->ebp = ebp;
-    current_task->esp = current_task->ebp = current_task->eip = 0;
-    current_task->page_directory = cur_dir;
-    current_task->next = 0;
-
-    // Reenable interrupts.
-    asm volatile("sti");
+  asm volatile("sti");
 }
 
 void move_stack(void *new_stack_start, unsigned size)
@@ -105,146 +95,25 @@ void move_stack(void *new_stack_start, unsigned size)
 
 void switch_task(struct s_regs *regs)
 {
-    if (!current_task)
-        return;
-
-// return ;
-
-    // Read esp, ebp now for saving later on.
-    // unsigned esp, ebp, eip;
-    // asm volatile("mov %%esp, %0" : "=r"(esp));
-    // asm volatile("mov %%ebp, %0" : "=r"(ebp));
+  if (!current_task)
+    return;
 
 
-    // eip = read_eip();
+  memcpy(&current_task->regs, regs, sizeof (*regs));
 
-    // if (eip != 0x12345)
-    //   printk(COLOR_BLUE, "Current process values : \n");
-    // else
-    //   printk(COLOR_BLUE, "Switched process values : \n");
+  current_task = current_task->next;
 
-    // printk(COLOR_BLUE, "INT NB = ");
-    // // printk(COLOR_BLUE, my_putnbr_base(regs->int_no, "0123456789"));
-    // printk(COLOR_BLUE, "\n");
-    // printk(COLOR_BLUE, "ESP = ");
-    // // printk(COLOR_BLUE, my_putnbr_base(regs->esp, "0123456789ABCDEF"));
-    // printk(COLOR_BLUE, "\n");
-    // printk(COLOR_BLUE, "EBP = ");
-    // // printk(COLOR_BLUE, my_putnbr_base(regs->ebp, "0123456789ABCDEF"));
-    // printk(COLOR_BLUE, "\n");
-    // printk(COLOR_BLUE, "EIP = ");
-    // // printk(COLOR_BLUE, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
-    // printk(COLOR_BLUE, "\n");
+  if (!current_task)
+    current_task = ready_queue;
 
+  memcpy(regs, &current_task->regs, sizeof (*regs));
 
+  cur_dir = current_task->page_directory;
 
-    // if (eip == 0x12345)
-    //     return;
+  asm volatile(
+    "mov %0, %%cr3"
+    : : "r"(cur_dir->physicalAddr));
 
-    memcpy(&current_task->regs, regs, sizeof (*regs));
-    // current_task->regs = *regs;
-
-    // current_task->eip = regs->eip;
-    // current_task->esp = regs->esp;
-    // current_task->ebp = regs->ebp;
-
-    current_task = current_task->next;
-
-    if (!current_task)
-      current_task = ready_queue;
-
-    // eip = current_task->eip;
-    // esp = current_task->esp;
-    // ebp = current_task->ebp;
-
-
-    if (!current_task->regs.eip)
-    {
-      memcpy(&current_task->regs, regs, sizeof (*regs));
-
-      // current_task->eip = regs->eip;
-      // current_task->esp = regs->esp;
-      // current_task->ebp = regs->ebp;
-      current_task->regs.eip = current_task->eip;
-      current_task->regs.esp = current_task->esp;
-      current_task->regs.ebp = current_task->ebp;
-    }
-
-    memcpy(regs, &current_task->regs, sizeof (*regs));
-    // *regs = current_task->regs;
-
-
-    cur_dir = current_task->page_directory;
-
-    asm volatile(
-      "mov %0, %%cr3"
-      : : "r"(cur_dir->physicalAddr));
-
-
-}
-
-int fork()
-{
-    asm volatile("cli");
-
-    t_task *parent_task = (t_task*)current_task;
-
-    t_page_directory *directory = clone_directory(cur_dir);
-    // for(;;);
-
-    // printk(COLOR_WHITE, "New Directory = ");
-    // printk(COLOR_WHITE, my_putnbr_base(directory, "0123456789ABCDEF"));
-    // printk(COLOR_WHITE, "\n");
-
-    t_task *new_task = (t_task*)kmalloc(sizeof(t_task));
-
-    new_task->id = next_pid++;
-    new_task->esp = new_task->ebp = 0;
-    new_task->eip = 0;
-    new_task->page_directory = directory;
-    new_task->next = 0;
-
-    t_task *tmp_task = (t_task*)ready_queue;
-
-    while (tmp_task->next)
-      tmp_task = tmp_task->next;
-
-    tmp_task->next = new_task;
-
-    unsigned eip = read_eip();
-
-    // if (current_task != parent_task)
-    //   printk(COLOR_WHITE, "Pre-Child");
-
-    if (current_task == parent_task)
-    {
-        unsigned esp; asm volatile("mov %%esp, %0" : "=r"(esp));
-        unsigned ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
-        new_task->esp = esp;
-        new_task->ebp = ebp;
-        new_task->eip = eip;
-        printk(COLOR_BLUE, "Saved values on fork : \n");
-        printk(COLOR_BLUE, "ESP = ");
-        printk(COLOR_BLUE, my_putnbr_base(esp, "0123456789ABCDEF"));
-        printk(COLOR_BLUE, "\n");
-        printk(COLOR_BLUE, "EBP = ");
-        printk(COLOR_BLUE, my_putnbr_base(ebp, "0123456789ABCDEF"));
-        printk(COLOR_BLUE, "\n");
-        printk(COLOR_BLUE, "EIP = ");
-        printk(COLOR_BLUE, my_putnbr_base(eip, "0123456789ABCDEF"));
-        printk(COLOR_BLUE, "\n");
-        asm volatile("sti");
-
-        printk(COLOR_WHITE, "Parent");
-
-        return new_task->id;
-    }
-    else
-    {
-        printk(COLOR_WHITE, "Child");
-        // We are the child.
-        return 0;
-    }
 
 }
 

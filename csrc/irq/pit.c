@@ -19,13 +19,8 @@ unsigned                  tick = 0;
 
 static void timer_callback(struct s_regs *regs)
 {
-       // printk(COLOR_BLUE, "INT NB = ");
-
    tick++;
    switch_task(regs);
-   // printk(COLOR_WHITE, "Tick: ");
-   // my_put_nbr(tick);
-   // printk(COLOR_WHITE, "\n");
 }
 
 void                      init_pit(unsigned frequency)

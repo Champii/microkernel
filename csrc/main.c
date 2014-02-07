@@ -84,10 +84,6 @@ int           cmain(unsigned long magic, unsigned long addr, unsigned start_stac
 
   init(addr);
 
-  printk(COLOR_WHITE, "Initial esp = ");
-  printk(COLOR_WHITE, my_putnbr_base(initial_esp, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\n");
-
   __asm__ ("       \
     mov 0, %%eax;  \
     int $0x80;"
@@ -96,10 +92,6 @@ int           cmain(unsigned long magic, unsigned long addr, unsigned start_stac
   printk(COLOR_RED, "Hello World ! From : ");
   printk(COLOR_RED, my_putnbr_base(getpid(), "0123456789"));
   printk(COLOR_RED, "\n");
-  // int ret = fork();
-
-  // printk(COLOR_RED, "Fork return = ");
-  // printk(COLOR_RED, my_putnbr_base(ret, "0123456789"));
 
   for (;;);
 

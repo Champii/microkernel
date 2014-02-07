@@ -303,12 +303,12 @@ void                      invalid_opcode(struct s_regs *regs)
 
 void                      page_fault(struct s_regs *regs)
 {
-  unsigned              faulting_address;
+  unsigned                faulting_address;
 
-  int                   present = !(regs->err_code & 0x1);
-  int                   rw = regs->err_code & 0x2;
-  int                   us = regs->err_code & 0x4;
-  int                   reserved = regs->err_code & 0x8;
+  int                     present = !(regs->err_code & 0x1);
+  int                     rw = regs->err_code & 0x2;
+  int                     us = regs->err_code & 0x4;
+  int                     reserved = regs->err_code & 0x8;
 
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
@@ -323,8 +323,6 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, my_putnbr_base(faulting_address, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault");
-
-  // alloc_page(get_page(faulting_address, 1, cur_dir), 0, 1);
 
   for(;;);
 }
@@ -349,12 +347,8 @@ void                      init_page_dir()
   // Bios and kernel in high
   initial_map(0xC0000000, 0x10000000);
 
-  // TODO
   idt_set_gate(6, (unsigned)&invalid_opcode, 0x08, 0x8E);
   idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
-  // register_interrupt_handler(14, &page_fault);
-
-  // __asm__ volatile("mov %0, %%cr3":: "b"(page_dir->physicalAddr));
 
   cur_dir = clone_directory(page_dir);
 

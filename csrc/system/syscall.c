@@ -15,7 +15,7 @@
 #include                  "screen.h"
 
 void                      syscall_handler(struct s_regs *regs);
-extern int                syscall_asm;
+extern int                syscall;
 
 static void               *syscalls[8] =
 {
@@ -33,15 +33,11 @@ unsigned                  num_syscalls = 8;
 
 void                      init_syscalls()
 {
-  idt_set_gate(0x80, (unsigned)&syscall_asm, 0x08, 0x8E);
+  idt_set_gate(0x80, (unsigned)&syscall, 0x08, 0x8E);
 }
 
 void                      syscall_handler(struct s_regs *regs)
 {
-  printk(COLOR_WHITE, "Syscall : ");
-  printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
-  printk(COLOR_WHITE, "\n");
-
   if (regs->eax >= num_syscalls)
     return;
 
@@ -49,6 +45,8 @@ void                      syscall_handler(struct s_regs *regs)
 
   if (!location)
     return;
+
+  regs->ebx = (unsigned)regs;
 
   int ret;
   asm volatile (" \
