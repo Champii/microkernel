@@ -28,7 +28,7 @@ DEPS	= $(addprefix $(BUILD_PATH), $(SRC:.c=.d))
 OBJ_mmap = sys/mman.o
 OBJ_start = others/_start.o
 
-TARGET_LIB = mikro_libc
+TARGET_LIB = libmikro_libc
 
 CC	= gcc
 AR	= ar

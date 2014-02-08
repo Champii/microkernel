@@ -8,7 +8,7 @@
 *
 ************************************************/
 
-extern void          *memcpy(void *d, const void *s, int count)
+extern void           *memcpy(void *d, const void *s, int count)
 {
   int                 i;
   unsigned char       *dest = d;

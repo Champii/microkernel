@@ -34,7 +34,7 @@ void init_tasking()
   // move_stack((void*)0xE0000000, 0x2000);
 
   current_task = ready_queue = (t_task*)kmalloc(sizeof(t_task));
-  current_task->id = next_pid++;
+  current_task->id = 0;
   current_task->page_directory = cur_dir;
   current_task->next = 0;
 

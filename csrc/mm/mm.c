@@ -84,6 +84,10 @@ void                      alloc_reserved_hard()
 
 }
 
+// void                      *mmap(u64 *pid, void *vaddr, int right, unsigned size)
+// {
+
+// }
 
 unsigned                  virt_to_phys(unsigned virt)
 {

@@ -84,11 +84,6 @@ int           cmain(unsigned long magic, unsigned long addr, unsigned start_stac
 
   init(addr);
 
-  __asm__ ("       \
-    mov 0, %%eax;  \
-    int $0x80;"
-    : : );
-
   printk(COLOR_RED, "Hello World ! From : ");
   printk(COLOR_RED, my_putnbr_base(getpid(), "0123456789"));
   printk(COLOR_RED, "\n");

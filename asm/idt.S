@@ -186,4 +186,4 @@ syscall_asm:
   pop ds
   popa
   add esp, 8
-;  ret
+  iret

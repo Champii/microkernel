@@ -14,6 +14,10 @@
 #include                  "idt.h"
 #include                  "screen.h"
 
+//test
+#include                  "kmalloc.h"
+
+
 void                      syscall_handler(struct s_regs *regs);
 extern int                syscall;
 
@@ -38,6 +42,10 @@ void                      init_syscalls()
 
 void                      syscall_handler(struct s_regs *regs)
 {
+  printk(COLOR_WHITE, "Syscall ! ");
+  printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
+  printk(COLOR_WHITE, "\n");
+
   if (regs->eax >= num_syscalls)
     return;
 
@@ -45,8 +53,6 @@ void                      syscall_handler(struct s_regs *regs)
 
   if (!location)
     return;
-
-  regs->ebx = (unsigned)regs;
 
   int ret;
   asm volatile (" \

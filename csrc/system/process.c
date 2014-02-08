@@ -24,44 +24,45 @@ extern unsigned           initial_esp;
 extern unsigned           next_pid;
 
 
-int                       create_process(u32 *user_pid)
+int                       create_process(u64 *user_pid)
 {
   asm volatile("cli");
-  struct s_regs *regs = (struct s_regs *)user_pid;
+  unsigned *lol = (unsigned *)user_pid;
+  int pid = next_pid++;
 
-  t_task *parent_task = (t_task*)current_task;
-
-  t_page_directory *directory = clone_directory(cur_dir);
+  lol[0] = pid;
 
   t_task *new_task = (t_task*)kmalloc(sizeof(t_task));
+  memset(new_task, 0, sizeof(t_task));
 
-  new_task->id = next_pid++;
-  new_task->esp = new_task->ebp = 0;
-  new_task->eip = 0;
-  new_task->page_directory = directory;
-  new_task->next = 0;
+  lol[1] = (unsigned)new_task;
 
-  t_task *tmp_task = (t_task*)ready_queue;
+  new_task->id = pid;
 
-  while (tmp_task->next)
-    tmp_task = tmp_task->next;
-
-  tmp_task->next = new_task;
-
-  if (current_task == parent_task)
-  {
-    memcpy(&new_task->regs, regs, sizeof(*regs));
-
-    asm volatile("sti");
-
-    return new_task->id;
-  }
+  asm volatile("sti");
 
   return 0;
 }
 
 int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt)
 {
+  asm volatile("cli");
+  printk(COLOR_WHITE, "Running process !\n");
+
+  t_task *task = task_struct;
+
+  task->regs.esp = (unsigned)stack;
+  task->regs.eip = (unsigned)entry;
+  task->page_directory = root_pt;
+
+  t_task *tmp_task = (t_task*)ready_queue;
+
+  while (tmp_task->next)
+    tmp_task = tmp_task->next;
+
+  tmp_task->next = task;
+
+  asm volatile("sti");
 
   return 0;
 }

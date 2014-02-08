@@ -14,7 +14,7 @@
 typedef unsigned int      u32;
 typedef unsigned long long u64;
 
-int                       create_process(u32 *user_pid);
+int                       create_process(u64 *user_pid);
 int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt);
 int                       kill(u64 pid);
 int                       wait(u64 pid);
