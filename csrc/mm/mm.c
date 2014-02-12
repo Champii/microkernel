@@ -173,9 +173,6 @@ int                       alloc_page(t_page *page, int is_kernel, int is_writeab
   }
 
   set_frame(idx * 0x1000);
-  printk(COLOR_BLUE, "Allocated phys frame : 0x");
-  printk(COLOR_BLUE, my_putnbr_base(idx * 0x1000, "0123456789ABCDEF"));
-  printk(COLOR_BLUE, "\n");
   page->present = 1;
   page->rw = (is_writeable)?1:0;
   page->user = (is_kernel)?0:1;
@@ -345,7 +342,6 @@ void                      page_fault(struct s_regs *regs)
 
 void                      switch_page_directory(t_page_directory *new_dir)
 {
-  cur_dir = new_dir;
 
   __asm__ volatile("mov %0, %%cr3":: "b"(new_dir->physicalAddr));
 }

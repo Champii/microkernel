@@ -12,6 +12,7 @@
 *.so
 *.so.*
 *.dylib
+*.mod
 
 # Executables
 *.exe

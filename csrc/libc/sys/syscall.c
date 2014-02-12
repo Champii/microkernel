@@ -58,7 +58,7 @@ int sys_sleep(u32 milli)
 
 int sys_send(u64 to, void *msg, u32 size)
 {
-  int res;
+  int res = 0;
 
   SYSCALL4(SYS_SEND, res, SYS_LSB64(to), SYS_MSB64(to), msg, size);
 

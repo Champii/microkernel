@@ -23,6 +23,8 @@ extern unsigned           initial_esp;
 
 extern unsigned           next_pid;
 
+extern u64                *pl_pid;
+
 
 int                       create_process(u64 *user_pid)
 {
@@ -38,21 +40,41 @@ int                       create_process(u64 *user_pid)
 
   new_task->id = pid;
 
+  printk(COLOR_WHITE, "Created process ! :");
+  printk(COLOR_WHITE, my_putnbr_base(pid, "0123456789"));
+  printk(COLOR_WHITE, "\n");
 
   return 0;
 }
 
 int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt)
 {
-  printk(COLOR_WHITE, "Running process !\n");
-
   t_task *task = task_struct;
 
-  // task->regs.esp = (unsigned)stack + 50;
-  // task->regs.ebp = (unsigned)stack + 50;
+  task->regs.ebp = 0;
+  task->regs.esp = (unsigned)stack;
   task->regs.eip = (unsigned)entry;
   task->page_directory = root_pt;
-  // task->page_directory = cur_dir;
+
+  // Push pl_pid on stack
+  unsigned *pid_split = (unsigned *)pl_pid;
+  unsigned *ustack = stack;
+  switch_page_directory(task->page_directory);
+
+  ustack -= 1;
+  *ustack = pid_split[1];
+  ustack -= 1;
+  *ustack = pid_split[0];
+  task->regs.esp = (unsigned)ustack;
+
+  printk(COLOR_WHITE, "stack[0] : 0x");
+  printk(COLOR_WHITE, my_putnbr_base(*ustack, "0123456789ABCDEF"));
+  printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, "stack[1] : 0x");
+  printk(COLOR_WHITE, my_putnbr_base(*(ustack + 1), "0123456789ABCDEF"));
+  printk(COLOR_WHITE, "\n");
+
+  switch_page_directory(cur_dir);
 
   t_task *tmp_task = (t_task*)ready_queue;
 
@@ -61,6 +83,9 @@ int                       run_process(void *task_struct, void *entry, void *stac
 
   tmp_task->next = task;
 
+  printk(COLOR_WHITE, "Running process ! ");
+  printk(COLOR_WHITE, my_putnbr_base(task->id, "0123456789"));
+  printk(COLOR_WHITE, "\n");
 
   return 0;
 }

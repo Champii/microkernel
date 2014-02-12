@@ -108,20 +108,28 @@ void switch_task(struct s_regs *regs)
 
 
 
-  if (!current_task->regs.ebp)
+  if (!current_task->regs.cs)
   {
     unsigned eip = current_task->regs.eip;
     unsigned esp = current_task->regs.esp;
+    unsigned ebp = current_task->regs.ebp;
 
     memcpy(&current_task->regs, regs, sizeof (*regs));
     current_task->regs.eip = eip;
     current_task->regs.esp = esp;
+    // current_task->regs.ebp = ebp;
+    printk(COLOR_WHITE, "Current stack = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(esp, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n");
+    printk(COLOR_WHITE, "Current ebp = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(ebp, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n");
     // current_task->regs.ebp = 0;
   }
 
   memcpy(regs, &current_task->regs, sizeof (*regs));
 
-
+  cur_dir = current_task->page_directory;
   switch_page_directory(current_task->page_directory);
 
   // asm volatile("sti");

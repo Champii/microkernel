@@ -12,6 +12,7 @@
 #include                  "process.h"
 #include                  "isrs.h"
 #include                  "idt.h"
+#include                  "ipc.h"
 #include                  "screen.h"
 
 //test
@@ -28,8 +29,8 @@ static void               *syscalls[8] =
   &kill,                  // kill
   &wait,                  // wait
   &sleep,                 // sleep
-  0,                      // send
-  0,                      // recv
+  &send,                  // send
+  &recv,                  // recv
   0                       //invlpg
 };
 

@@ -28,6 +28,7 @@ PATH_PROCESS 	= $(PATH_C)/process
 PATH_SERVICES = $(PATH_C)/services
 PATH_SYSTEM 	= $(PATH_C)/system
 PATH_INCLUDE  = $(PATH_C)/include
+PATH_IPC   = $(PATH_C)/ipc
 PATH_SCREEN   = $(PATH_C)/screen
 PATH_MM   		= $(PATH_C)/mm
 PATH_GDT   		= $(PATH_MM)/gdt
@@ -54,6 +55,7 @@ C_SRC 				= $(PATH_SYSTEM)/system.c 			\
 								$(PATH_PROCESS)/task.c 				\
 								$(PATH_SERVICES)/services.c 	\
 								$(PATH_SCREEN)/screen.c				\
+								$(PATH_IPC)/ipc.c							\
 								$(PATH_MM)/mm.c 							\
 								$(PATH_MM)/kmalloc.c 					\
 								$(PATH_GDT)/gdt.c 						\
@@ -101,10 +103,11 @@ $(NAME): $(ASM_OBJ) $(C_OBJ)
 clean:
 	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
 	@if $(RM) $(ASM_OBJ) $(C_OBJ); then printf "%24s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
+	@cd $(PATH_SERVICES) && make -s clean && cd ../
 
 fclean: clean
-	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
-	@cd $(PATH_BUILD)/..
+#	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
+#	@cd $(PATH_BUILD)/..
 	@echo -n "\n$(BLUE)[Full Cleaning]$(RESET_COLOR)"
 	@if	$(RM) $(PATH_BUILD)/$(NAME); then printf "%19s" " -> ";  echo '$(OK_STRING)\n'; else  echo '$(ERROR_STRING)'; fi
 
@@ -133,6 +136,10 @@ install: $(NAME)
 	sudo umount /mnt
 	sudo losetup -d /dev/loop1
 	sudo losetup -d /dev/loop0
+	@cd $(PATH_SERVICES) && make -s install && cd ..
+
+services: lib
+	@cd $(PATH_SERVICES) && make -s && cd ..
 
 mountdisk:
 	sudo losetup -f build/disk.img
