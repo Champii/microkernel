@@ -159,27 +159,30 @@ static unsigned          first_frame()
   return (-1);
 }
 
-void                      alloc_page(t_page *page, int is_kernel, int is_writeable)
+int                       alloc_page(t_page *page, int is_kernel, int is_writeable)
 {
   if (page->frame != 0)
-    return ;
+    return -1;
 
-  else
+  unsigned           idx = first_frame();
+
+  if (idx == (unsigned)-1)
   {
-    unsigned           idx = first_frame();
-
-    if (idx == (unsigned)-1)
-    {
-      printk(COLOR_RED, "No free frames!");
-      for (;;);
-    }
-
-    set_frame(idx * 0x1000);
-    page->present = 1;
-    page->rw = (is_writeable)?1:0;
-    page->user = (is_kernel)?0:1;
-    page->frame = idx;
+    printk(COLOR_RED, "No free frames!");
+    for (;;);
   }
+
+  set_frame(idx * 0x1000);
+  printk(COLOR_BLUE, "Allocated phys frame : 0x");
+  printk(COLOR_BLUE, my_putnbr_base(idx * 0x1000, "0123456789ABCDEF"));
+  printk(COLOR_BLUE, "\n");
+  page->present = 1;
+  page->rw = (is_writeable)?1:0;
+  page->user = (is_kernel)?0:1;
+  page->frame = idx;
+
+  return 0;
+
 }
 
 t_page                    *get_page(unsigned address, int make, t_page_directory *dir)
@@ -344,14 +347,14 @@ void                      switch_page_directory(t_page_directory *new_dir)
 {
   cur_dir = new_dir;
 
-  __asm__ volatile("mov %0, %%cr3":: "b"(cur_dir->physicalAddr));
+  __asm__ volatile("mov %0, %%cr3":: "b"(new_dir->physicalAddr));
 }
 
 void                      init_page_dir()
 {
   unsigned                page_dir_phys;
 
-  unsigned                mem_end_page = 0xFFFFFFFF;
+  unsigned                mem_end_page = 0xFFFFFF;
 
   nframes = mem_end_page / 0x1000;
   frames = kmalloc(INDEX_FROM_BIT(nframes));
@@ -365,7 +368,7 @@ void                      init_page_dir()
   initial_map(0x0, 1024 * 0x1000);
 
   // Bios and kernel in high
-  initial_map(0xC0000000, 0x10000000);
+  initial_map(0xC0000000, 1024 * 0x1000);
 
   idt_set_gate(6, (unsigned)&invalid_opcode, 0x08, 0x8E);
   idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);

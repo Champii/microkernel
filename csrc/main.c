@@ -44,9 +44,6 @@ void          init(unsigned long multiboot_addr)
   init_gdt();
   printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
 
-  init_pit(100);
-  printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
-
   init_syscalls();
   printk(COLOR_CYAN, "-- Syscalls LOADED -- !\n");
 
@@ -55,6 +52,9 @@ void          init(unsigned long multiboot_addr)
 
   init_services(info->mods_count, (struct s_multiboot_module *) info->mods_addr);
   printk(COLOR_CYAN, "-- Services LOADED -- !\n");
+
+  init_pit(100);
+  printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
 
   init_keyboard();
   printk(COLOR_CYAN, "-- Keyboard LOADED -- !\n");

@@ -18,6 +18,7 @@
 #include                  "mm.h"
 
 extern t_page_directory   *page_dir;
+extern t_page_directory   *cur_dir;
 
 int                       check_elf_magic(unsigned char *to_check)
 {
@@ -69,7 +70,6 @@ void                      init_services(int count, struct s_multiboot_module *mo
     ph = ((Elf32_Phdr *)(module[i].mod_start + elf->e_phoff));
 
     unsigned *new_stack;
-    switch_page_directory(new_pd);
 
     int j;
     for (j = 0; j < elf->e_phnum; j++)
@@ -97,25 +97,32 @@ void                      init_services(int count, struct s_multiboot_module *mo
       int k = (ph->p_vaddr / 0x1000) * 0x1000;
       for (; k <= ph->p_vaddr + ph->p_memsz; k += 0x1000)
       {
-        printk(COLOR_GREEN, "Allocated page at : 0x");
+        if (!alloc_page(get_page(k, 1, new_pd), 1, 1))
+          printk(COLOR_GREEN, "Allocated page at : 0x");
+        else
+          printk(COLOR_RED, "ERROR Allocating page at : 0x");
+
         printk(COLOR_GREEN, my_putnbr_base(k, "0123456789ABCDEF"));
         printk(COLOR_GREEN, "\n");
-        alloc_page(get_page(k, 1, new_pd), 1, 1);
-        // alloc_page(get_page(k, 1, page_dir), 1, 1);
+        // alloc_page(get_page(k, 1, cur_dir), 1, 1);
 
       }
+
+      switch_page_directory(new_pd);
 
       memcpy((void *)ph->p_vaddr, (void *)(module[i].mod_start + ph->p_offset), ph->p_filesz);
       if (ph->p_filesz != ph->p_memsz)
       {
-        memset((void *)(ph->p_vaddr + ph->p_filesz + 1), 0, ph->p_memsz - ph->p_filesz - 1);
+        memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz - 1);
         new_stack = ph->p_vaddr + ph->p_memsz;
 
       }
+      switch_page_directory(cur_dir);
+
       ph = (Elf32_Phdr *)(((char *)ph) + elf->e_phentsize);
     }
+      // for(;;);
 
-    switch_page_directory(page_dir);
 
     unsigned *test;
     u64 *task = kmalloc(sizeof(u64));
@@ -153,7 +160,7 @@ void                      init_services(int count, struct s_multiboot_module *mo
     printk(COLOR_WHITE, "test 2 = 0x");
     printk(COLOR_WHITE, my_putnbr_base(test[1], "0123456789ABCDEF"));
     printk(COLOR_WHITE, "\n");
-    // run_process(test[1], (void *)elf->e_entry, new_stack, page_dir);
+    // run_process(test[1], (void *)elf->e_entry, new_stack, cur_dir);
     run_process(test[1], (void *)elf->e_entry, new_stack, new_pd);
 
     printk(COLOR_WHITE, "Entry point : 0x");

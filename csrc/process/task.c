@@ -21,7 +21,6 @@ t_task *ready_queue;
 
 extern t_page_directory *page_dir;
 extern t_page_directory *cur_dir;
-extern void alloc_page(t_page*,int,int);
 extern unsigned initial_esp;
 extern unsigned read_eip();
 
@@ -111,11 +110,6 @@ void switch_task(struct s_regs *regs)
 
   if (!current_task->regs.ebp)
   {
-    // current_task->regs.ebp = regs->ebp;
-    // current_task->regs.esp = regs->esp;
-    // struct s_regs regs_save;
-
-    // memcpy(&regs_save, &current_task->regs, sizeof (*regs));
     unsigned eip = current_task->regs.eip;
     unsigned esp = current_task->regs.esp;
 
@@ -127,11 +121,8 @@ void switch_task(struct s_regs *regs)
 
   memcpy(regs, &current_task->regs, sizeof (*regs));
 
-  cur_dir = current_task->page_directory;
 
-  asm volatile(
-    "mov %0, %%cr3"
-    : : "r"(cur_dir->physicalAddr));
+  switch_page_directory(current_task->page_directory);
 
   // asm volatile("sti");
 
