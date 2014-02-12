@@ -98,6 +98,7 @@ void switch_task(struct s_regs *regs)
   if (!current_task)
     return;
 
+  // asm volatile("cli");
 
   memcpy(&current_task->regs, regs, sizeof (*regs));
 
@@ -105,6 +106,24 @@ void switch_task(struct s_regs *regs)
 
   if (!current_task)
     current_task = ready_queue;
+
+
+
+  if (!current_task->regs.ebp)
+  {
+    // current_task->regs.ebp = regs->ebp;
+    // current_task->regs.esp = regs->esp;
+    // struct s_regs regs_save;
+
+    // memcpy(&regs_save, &current_task->regs, sizeof (*regs));
+    unsigned eip = current_task->regs.eip;
+    unsigned esp = current_task->regs.esp;
+
+    memcpy(&current_task->regs, regs, sizeof (*regs));
+    current_task->regs.eip = eip;
+    current_task->regs.esp = esp;
+    // current_task->regs.ebp = 0;
+  }
 
   memcpy(regs, &current_task->regs, sizeof (*regs));
 
@@ -114,6 +133,7 @@ void switch_task(struct s_regs *regs)
     "mov %0, %%cr3"
     : : "r"(cur_dir->physicalAddr));
 
+  // asm volatile("sti");
 
 }
 

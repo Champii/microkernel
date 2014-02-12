@@ -305,11 +305,19 @@ void                      invalid_opcode(struct s_regs *regs)
   for(;;);
 }
 
+void                      general_protection_exception(struct s_regs *regs)
+{
+  printk(COLOR_RED, "General protection exception AT : 0x");
+  printk(COLOR_RED, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
+  printk(COLOR_RED, "\n");
+  for(;;);
+}
+
 void                      page_fault(struct s_regs *regs)
 {
   unsigned                faulting_address;
 
-  int                     present = !(regs->err_code & 0x1);
+  int                     present = regs->err_code & 0x1;
   int                     rw = regs->err_code & 0x2;
   int                     us = regs->err_code & 0x4;
   int                     reserved = regs->err_code & 0x8;
@@ -318,9 +326,10 @@ void                      page_fault(struct s_regs *regs)
 
   printk(COLOR_WHITE, "\nPage fault! ( ");
 
-  if (present) {printk(COLOR_WHITE, "present ");}
-  if (rw) {printk(COLOR_WHITE, "read-only ");}
-  if (us) {printk(COLOR_WHITE, "user-mode ");}
+
+  if (present) {printk(COLOR_WHITE, "protection violation ");} else { printk(COLOR_WHITE, "not present ");}
+  if (rw) {printk(COLOR_WHITE, "write-error ");} else { printk(COLOR_WHITE, "read-error "); }
+  if (us) {printk(COLOR_WHITE, "user-mode ");} else { printk(COLOR_WHITE, "supervisor-mode ");}
   if (reserved) {printk(COLOR_WHITE, "reserved ");}
 
   printk(COLOR_WHITE, ") at 0x");
@@ -329,6 +338,13 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, "Page fault");
 
   for(;;);
+}
+
+void                      switch_page_directory(t_page_directory *new_dir)
+{
+  cur_dir = new_dir;
+
+  __asm__ volatile("mov %0, %%cr3":: "b"(cur_dir->physicalAddr));
 }
 
 void                      init_page_dir()
@@ -352,11 +368,13 @@ void                      init_page_dir()
   initial_map(0xC0000000, 0x10000000);
 
   idt_set_gate(6, (unsigned)&invalid_opcode, 0x08, 0x8E);
+  idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);
   idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
 
   cur_dir = clone_directory(page_dir);
 
-  __asm__ volatile("mov %0, %%cr3":: "b"(cur_dir->physicalAddr));
+  switch_page_directory(cur_dir);
+
 }
 
 

@@ -26,7 +26,6 @@ extern unsigned           next_pid;
 
 int                       create_process(u64 *user_pid)
 {
-  asm volatile("cli");
   unsigned *lol = (unsigned *)user_pid;
   int pid = next_pid++;
 
@@ -39,21 +38,21 @@ int                       create_process(u64 *user_pid)
 
   new_task->id = pid;
 
-  asm volatile("sti");
 
   return 0;
 }
 
 int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt)
 {
-  asm volatile("cli");
   printk(COLOR_WHITE, "Running process !\n");
 
   t_task *task = task_struct;
 
-  task->regs.esp = (unsigned)stack;
+  // task->regs.esp = (unsigned)stack + 50;
+  // task->regs.ebp = (unsigned)stack + 50;
   task->regs.eip = (unsigned)entry;
   task->page_directory = root_pt;
+  // task->page_directory = cur_dir;
 
   t_task *tmp_task = (t_task*)ready_queue;
 
@@ -62,7 +61,6 @@ int                       run_process(void *task_struct, void *entry, void *stac
 
   tmp_task->next = task;
 
-  asm volatile("sti");
 
   return 0;
 }

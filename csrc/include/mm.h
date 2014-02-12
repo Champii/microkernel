@@ -44,20 +44,14 @@ typedef struct        s_page_directory
   unsigned            physicalAddr;
 }                     t_page_directory;
 
-// typedef struct        s_registers
-// {
-//   unsigned            ds;                  // Data segment selector
-//   unsigned            edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha.
-//   unsigned            int_no, err_code;    // Interrupt number and error code (if applicable)
-//   unsigned            eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
-// }                     t_registers;
-
 unsigned              virt_to_phys(unsigned virt);
 unsigned              phys_to_virt(unsigned phys);
 
 void                  init_mm();
 t_page                *get_page(unsigned, int, t_page_directory *);
+void                  alloc_page(t_page *page, int is_kernel, int is_writeable);
 t_page_directory      *clone_directory(t_page_directory *src);
+void                  switch_page_directory(t_page_directory *new_dir);
 /*LOOK stos (asm) => page table*/
 
 #endif                /*__MM_H__*/

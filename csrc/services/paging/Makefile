@@ -12,7 +12,7 @@
 NAME 					= paging.mod
 
 # Binaries
-CC 						= gcc -m32 -g3
+CC 						= gcc
 LD 						= ld -m elf_i386 -z max-page-size=0x1000
 RM 						= rm -f
 MAKE 					= make -s
@@ -22,7 +22,10 @@ PATH_INCLUDE	= ./include
 PATH_LIB_INCLUDE	= ../../libc/include
 
 # Cflags
-CFLAGS 				= -Wall -O -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdinc -fno-builtin -I./$(PATH_INCLUDE) -I./$(PATH_LIB_INCLUDE)
+CFLAGS 				= -Iinclude/ -m32 -nostdlib -Wall -Wextra -Werror -nostdinc\
+	  -fno-builtin -std=c11 -fno-stack-protector -g -mno-mmx -mno-sse\
+	  -mno-sse2 -mno-sse3 -mno-3dnow
+	  #-Wall -O  -nostdlib -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdinc -fno-builtin -I./$(PATH_INCLUDE) -I./$(PATH_LIB_INCLUDE)
 LDFLAGS				= -L../../libc -lmikro_libc
 
 # Srcs
@@ -52,7 +55,7 @@ all: $(NAME)
 
 $(NAME): $(C_OBJ)
 	@echo -n "\n$(BLUE)[Linking]$(RESET_COLOR)"
-	@if gcc -o $(NAME) $(C_OBJ) $(LDFLAGS); then printf "%25s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
+	@if gcc -o $(NAME) $(C_OBJ) $(CFLAGS) $(LDFLAGS); then printf "%25s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 
 clean:
 	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
@@ -63,6 +66,19 @@ fclean: clean
 	@if	$(RM) $(NAME); then printf "%19s" " -> ";  echo '$(OK_STRING)\n'; else  echo '$(ERROR_STRING)'; fi
 
 re: fclean all
+
+install: $(NAME)
+	@echo "\n$(BLUE)[Installing Service Into Disk]$(RESET_COLOR)"
+	sudo losetup -f ../../../build/disk.img
+	sudo losetup -o 1048576 /dev/loop1 /dev/loop0
+	sudo mount /dev/loop1 /mnt
+	sudo cp $(NAME) /mnt/boot
+	sudo cp $(NAME) ../../../build/base/boot/
+	sudo umount /mnt
+	sudo losetup -d /dev/loop1
+	sudo losetup -d /dev/loop0
+
+
 
 %.o : %.c
 	@echo -n "$(CYAN)C$(RESET_COLOR):  $< "

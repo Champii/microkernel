@@ -81,7 +81,8 @@ struct                    s_multiboot_module
 {
   unsigned                mod_start;
   unsigned                mod_end;
-  char                    cmdline[0];
+  char                    *cmdline;
+  unsigned                reserved;
 };
 
 #endif                    /*__MULTIBOOT_H__*/

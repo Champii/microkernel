@@ -30,6 +30,9 @@ void          init(unsigned long multiboot_addr)
   struct s_multiboot_info *info;
   info = (struct s_multiboot_info *) multiboot_addr;
 
+  asm volatile("cli");
+  printk(COLOR_CYAN, "-- Disabling interupts -- !\n");
+
   clear_screen();
 
   init_idt();
@@ -40,9 +43,6 @@ void          init(unsigned long multiboot_addr)
 
   init_gdt();
   printk(COLOR_CYAN, "-- GDT LOADED -- !\n");
-
-  asm volatile("sti");
-  printk(COLOR_CYAN, "-- Enabled interupts -- !\n");
 
   init_pit(100);
   printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
@@ -59,6 +59,8 @@ void          init(unsigned long multiboot_addr)
   init_keyboard();
   printk(COLOR_CYAN, "-- Keyboard LOADED -- !\n");
 
+  asm volatile("sti");
+  printk(COLOR_CYAN, "-- Enabled interupts -- !\n");
 
 }
 
