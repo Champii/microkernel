@@ -53,14 +53,11 @@ void          init(unsigned long multiboot_addr)
   init_services(info->mods_count, (struct s_multiboot_module *) info->mods_addr);
   printk(COLOR_CYAN, "-- Services LOADED -- !\n");
 
-  init_pit(100);
-  printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
+
 
   init_keyboard();
   printk(COLOR_CYAN, "-- Keyboard LOADED -- !\n");
 
-  asm volatile("sti");
-  printk(COLOR_CYAN, "-- Enabled interupts -- !\n");
 
 }
 
@@ -90,6 +87,13 @@ int           cmain(unsigned long magic, unsigned long addr, unsigned start_stac
   printk(COLOR_RED, my_putnbr_base(getpid(), "0123456789"));
   printk(COLOR_RED, "\n");
 
+  asm volatile("cli");
+  init_pit(100);
+  printk(COLOR_CYAN, "-- PIT (Timer) LOADED -- !\n");
+  printk(COLOR_CYAN, "-- Enabled interupts -- !\n");
+  // asm volatile("sti");
+  switch_to_user_mode();
+  // printk(COLOR_BLUE, "Userland !\n");
   for (;;);
 
   return 0;

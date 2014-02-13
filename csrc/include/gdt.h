@@ -64,4 +64,6 @@ struct                s_gdt_pseudo_desc
 void                  init_gdt();
 extern void           flush_gdt();
 
+void                  set_kernel_stack(unsigned stack);
+
 #endif                /*__GDT_H__*/

@@ -19,6 +19,8 @@ struct s_tss              tss_entry;
 
 extern void               flush_tss();
 
+extern unsigned           initial_esp;
+
 void                      init_segment(int seg_num, unsigned long base, unsigned long limit, unsigned char granularity, unsigned char access)
 {
   gdt[seg_num].base_low = base & 0xFFFF;
@@ -49,8 +51,13 @@ static void               write_tss(int num, unsigned short ss0, unsigned esp0)
   tss_entry.ss0  = ss0;
   tss_entry.esp0 = esp0;
 
-  // tss_entry.cs   = 0x0b;
-  // tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
+  tss_entry.cs   = 0x0b;
+  tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x13;
+}
+
+void                      set_kernel_stack(unsigned stack)
+{
+   tss_entry.esp0 = stack;
 }
 
 void                      init_gdt()
@@ -74,7 +81,7 @@ void                      init_gdt()
   init_segment(4, BASE, LIMIT, 0xC, 0xF2);
 
   /*TSS*/
-  write_tss(5, 0x10, 0x0);
+  write_tss(5, 0x10, 0);
 
   flush_gdt();
   flush_tss();

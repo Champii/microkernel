@@ -97,7 +97,7 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
       int k = (ph->p_vaddr / 0x1000) * 0x1000;
       for (; k <= ph->p_vaddr + ph->p_memsz; k += 0x1000)
-        alloc_page(get_page(k, 1, new_pd), 1, 1);
+        alloc_page(get_page(k, 1, new_pd), 0, 1);
 
       switch_page_directory(new_pd);
 
@@ -105,9 +105,11 @@ void                      init_services(int count, struct s_multiboot_module *mo
       if (ph->p_filesz != ph->p_memsz)
       {
         memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
-        new_stack = ph->p_vaddr + ph->p_memsz;
+        new_stack = (unsigned *)(ph->p_vaddr + ph->p_memsz);
         printk(COLOR_WHITE, "Created stack : 0x");
-        printk(COLOR_WHITE, my_putnbr_base(new_stack, "0123456789ABCDEF"));
+        printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
+        printk(COLOR_WHITE, "\n Size : 0x");
+        printk(COLOR_WHITE, my_putnbr_base(ph->p_memsz - ph->p_filesz, "0123456789ABCDEF"));
         printk(COLOR_WHITE, "\n");
 
       }
@@ -124,7 +126,12 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
     //create
 
-    run_process(task_split[1], (void *)elf->e_entry, new_stack, new_pd);
+    printk(COLOR_WHITE, "Entry point = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(elf->e_entry, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n");
+
+
+    run_process((void *)task_split[1], (void *)elf->e_entry, new_stack, new_pd);
 
 
   }

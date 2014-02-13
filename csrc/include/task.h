@@ -14,13 +14,16 @@
 # include             "mm.h"
 # include             "isrs.h"
 
+# define              KERNEL_STACK_SIZE 2048
+
 // This structure defines a 'task' - a process.
 typedef struct        task
 {
   int                 id;               // Process ID.
-  unsigned            esp, ebp;         // Stack and base pointers.
-  unsigned            eip;              // Instruction pointer.
+  // unsigned            esp, ebp;         // Stack and base pointers.
+  // unsigned            eip;              // Instruction pointer.
   struct s_regs       regs;
+  unsigned            kernel_stack;
   t_page_directory    *page_directory;  // Page directory.
   struct task         *next;            // The next task in a linked list.
 }                     t_task;
@@ -40,5 +43,7 @@ void                  move_stack(void *new_stack_start, unsigned size);
 
 // Returns the pid of the current process.
 int                   getpid();
+
+void                  switch_to_user_mode();
 
 #endif

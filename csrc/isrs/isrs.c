@@ -53,6 +53,13 @@ void                      isr_handler(struct s_regs *r)
   {
     printk(COLOR_RED, exception_messages[r->int_no]);
     printk(COLOR_RED, " Exception. System Halted!\n");
+    printk(COLOR_WHITE, "EIP = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(r->eip, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n ESP = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(r->esp, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n USER ESP = 0x");
+    printk(COLOR_WHITE, my_putnbr_base(r->useresp, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n");
     for (;;);
   }
 }

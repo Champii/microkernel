@@ -14,9 +14,9 @@
 #include                  "kmalloc.h"
 #include                  "system.h"
 
-volatile t_task           *current_task;
+t_task                    *current_task;
 
-volatile t_task           *ready_queue;
+t_task                    *ready_queue;
 
 extern t_page_directory   *cur_dir;
 extern unsigned           initial_esp;
@@ -52,15 +52,17 @@ int                       run_process(void *task_struct, void *entry, void *stac
   t_task *task = task_struct;
 
   task->regs.ebp = 0;
-  task->regs.esp = (unsigned)stack;
+  // task->regs.esp = (unsigned)stack;
   task->regs.eip = (unsigned)entry;
   task->page_directory = root_pt;
+  task->kernel_stack = (unsigned)kmalloc_a(KERNEL_STACK_SIZE);
+  task->next = 0;
 
   // Push pl_pid on stack
-  unsigned *pid_split = (unsigned *)pl_pid;
-  unsigned *ustack = stack;
   switch_page_directory(task->page_directory);
 
+  unsigned *pid_split = (unsigned *)pl_pid;
+  unsigned *ustack = stack;
   ustack -= 1;
   *ustack = pid_split[1];
   ustack -= 1;
@@ -78,13 +80,22 @@ int                       run_process(void *task_struct, void *entry, void *stac
 
   t_task *tmp_task = (t_task*)ready_queue;
 
-  while (tmp_task->next)
-    tmp_task = tmp_task->next;
+  if (!tmp_task)
+    tmp_task = ready_queue = task;
+  else
+  {
+    while (tmp_task->next)
+      tmp_task = tmp_task->next;
 
-  tmp_task->next = task;
+    tmp_task->next = task;
+
+  }
 
   printk(COLOR_WHITE, "Running process ! ");
   printk(COLOR_WHITE, my_putnbr_base(task->id, "0123456789"));
+  printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, "task next =  0x");
+  printk(COLOR_WHITE, my_putnbr_base((unsigned)task->next, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
 
   return 0;

@@ -70,4 +70,5 @@ void                      syscall_handler(struct s_regs *regs)
     pop %%ebx; \
   " : "=a" (ret) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (location));
   regs->eax = ret;
+
 }

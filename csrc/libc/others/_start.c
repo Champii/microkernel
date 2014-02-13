@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 extern int main(void);
-extern u64 prog_loader_pid;
+// extern u64 prog_loader_pid;
 
 void _start(u64 pl_pid)
 {

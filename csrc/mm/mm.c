@@ -307,7 +307,7 @@ void                      invalid_opcode(struct s_regs *regs)
 
 void                      general_protection_exception(struct s_regs *regs)
 {
-  printk(COLOR_RED, "General protection exception AT : 0x");
+  printk(COLOR_RED, "General protection exception AT EIP : 0x");
   printk(COLOR_RED, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
   printk(COLOR_RED, "\n");
   for(;;);
@@ -367,7 +367,7 @@ void                      init_page_dir()
   initial_map(0xC0000000, 1024 * 0x1000);
 
   idt_set_gate(6, (unsigned)&invalid_opcode, 0x08, 0x8E);
-  idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);
+  // idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);
   idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
 
   cur_dir = clone_directory(page_dir);
