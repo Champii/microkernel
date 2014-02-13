@@ -370,9 +370,9 @@ void                      init_page_dir()
   // idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);
   idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
 
-  cur_dir = clone_directory(page_dir);
-
-  switch_page_directory(cur_dir);
+  // cur_dir = clone_directory(page_dir);
+  cur_dir = page_dir;
+  switch_page_directory(page_dir);
 
 }
 

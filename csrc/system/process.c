@@ -14,9 +14,9 @@
 #include                  "kmalloc.h"
 #include                  "system.h"
 
-t_task                    *current_task;
+extern t_task             *current_task;
 
-t_task                    *ready_queue;
+extern t_task             *ready_queue;
 
 extern t_page_directory   *cur_dir;
 extern unsigned           initial_esp;
@@ -69,12 +69,12 @@ int                       run_process(void *task_struct, void *entry, void *stac
   *ustack = pid_split[0];
   task->regs.esp = (unsigned)ustack;
 
-  printk(COLOR_WHITE, "stack[0] : 0x");
-  printk(COLOR_WHITE, my_putnbr_base(*ustack, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\n");
-  printk(COLOR_WHITE, "stack[1] : 0x");
-  printk(COLOR_WHITE, my_putnbr_base(*(ustack + 1), "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[0] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*ustack, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[1] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 1), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
 
   switch_page_directory(cur_dir);
 
@@ -93,9 +93,6 @@ int                       run_process(void *task_struct, void *entry, void *stac
 
   printk(COLOR_WHITE, "Running process ! ");
   printk(COLOR_WHITE, my_putnbr_base(task->id, "0123456789"));
-  printk(COLOR_WHITE, "\n");
-  printk(COLOR_WHITE, "task next =  0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)task->next, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
 
   return 0;

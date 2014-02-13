@@ -74,10 +74,7 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
     // if process loader
     if (i == 0)
-    {
-      printk(COLOR_WHITE, "PL !\n");
       pl_pid = task;
-    }
 
     //empty address space
     t_page_directory *new_pd = clone_directory(page_dir);
@@ -108,8 +105,6 @@ void                      init_services(int count, struct s_multiboot_module *mo
         new_stack = (unsigned *)(ph->p_vaddr + ph->p_memsz);
         printk(COLOR_WHITE, "Created stack : 0x");
         printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
-        printk(COLOR_WHITE, "\n Size : 0x");
-        printk(COLOR_WHITE, my_putnbr_base(ph->p_memsz - ph->p_filesz, "0123456789ABCDEF"));
         printk(COLOR_WHITE, "\n");
 
       }
