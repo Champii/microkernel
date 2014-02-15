@@ -19,11 +19,14 @@
 t_task *current_task;
 
 t_task *ready_queue = 0;
+t_task *wait_queue = 0;
 
 extern t_page_directory *page_dir;
 extern t_page_directory *cur_dir;
 extern unsigned initial_esp;
 extern unsigned read_eip();
+
+extern unsigned tick;
 
 unsigned next_pid = 1;
 
@@ -145,6 +148,86 @@ void switch_to_user_mode()
      ");*/
 }
 
+void schedule_task(t_task *task)
+{
+  // add to ready queue
+  t_task *tmp_task = ready_queue;
+
+  if (!tmp_task)
+    ready_queue = task;
+  else
+  {
+    while (tmp_task->next)
+      tmp_task = tmp_task->next;
+
+    tmp_task->next = task;
+    task->next = 0;
+  }
+}
+
+void reschedule_task(t_task *task)
+{
+  t_task *wait_prev = wait_queue;
+
+  if (wait_prev)
+    while (wait_prev->next != task)
+      wait_prev = wait_prev->next;
+
+  // remove from wait queue
+  if (wait_prev)
+    if (task->next)
+      wait_prev->next = task->next;
+
+  // add to ready queue
+  schedule_task(task);
+
+}
+
+void unschedule_task(t_task *task)
+{
+  t_task *ready_prev = ready_queue;
+
+  // remove from ready queue
+  if (ready_prev)
+  {
+    while (ready_prev && ready_prev->next != task)
+      ready_prev = ready_prev->next;
+
+    if (ready_prev && task->next)
+      ready_prev->next = task->next;
+  }
+  else
+    ready_queue = task->next;
+
+  // add to wait queue
+  t_task *tmp_task = wait_queue;
+
+  if (!tmp_task)
+    wait_queue = task;
+  else
+  {
+    while (tmp_task->next)
+      tmp_task = tmp_task->next;
+
+    tmp_task->next = task;
+    task->next = 0;
+  }
+}
+
+void check_sleeping()
+{
+  t_task *tmp = wait_queue;
+
+  while (tmp)
+  {
+    t_task *tmp_next = tmp->next;
+
+    if (tmp->sleep_count < tick)
+      reschedule_task(tmp);
+
+    tmp = tmp_next;
+  }
+}
 
 void switch_task(struct s_regs *regs)
 {
@@ -152,6 +235,7 @@ void switch_task(struct s_regs *regs)
     return;
 
   asm volatile("cli");
+  check_sleeping();
 
   memcpy(&current_task->regs, regs, sizeof (*regs));
 
@@ -200,9 +284,12 @@ void switch_task(struct s_regs *regs)
   cur_dir = current_task->page_directory;
   switch_page_directory(current_task->page_directory);
 
+
   asm volatile("sti");
 
 }
+
+
 
 int getpid()
 {

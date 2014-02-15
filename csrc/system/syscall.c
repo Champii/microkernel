@@ -18,11 +18,11 @@
 //test
 #include                  "kmalloc.h"
 
+extern void               syscall();
 
 void                      syscall_handler(struct s_regs *regs);
-extern int                syscall;
 
-static void               *syscalls[8] =
+static void               *syscalls[9] =
 {
   &create_process,        // create_process
   &run_process,           // run_process
@@ -31,21 +31,18 @@ static void               *syscalls[8] =
   &sleep,                 // sleep
   &send,                  // send
   &recv,                  // recv
-  0                       //invlpg
+  0,                      //invlpg
+  &printk                 //TEMP write
 };
 
-unsigned                  num_syscalls = 8;
+unsigned                  num_syscalls = 9;
 
-void                      init_syscalls()
-{
-  idt_set_gate(0x80, (unsigned)&syscall, 0x08, 0x8E);
-}
 
 void                      syscall_handler(struct s_regs *regs)
 {
-  printk(COLOR_WHITE, "Syscall ! ");
-  printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
-  printk(COLOR_WHITE, "\n");
+    // printk(COLOR_WHITE, "Syscall ! ");
+    // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
+    // printk(COLOR_WHITE, "\n");
 
   if (regs->eax >= num_syscalls)
     return;
@@ -55,7 +52,7 @@ void                      syscall_handler(struct s_regs *regs)
   if (!location)
     return;
 
-  int ret;
+  volatile int ret = 0;
   asm volatile (" \
     push %1; \
     push %2; \
@@ -69,6 +66,17 @@ void                      syscall_handler(struct s_regs *regs)
     pop %%ebx; \
     pop %%ebx; \
   " : "=a" (ret) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (location));
+
+  // printk(COLOR_WHITE, "RETURN FROM SYSCALL = ");
+  // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
+
   regs->eax = ret;
 
+}
+
+void                      init_syscalls()
+{
+  // register_interrupt_handler(0x80, syscall_handler);
+  idt_set_gate(0x80, (unsigned)syscall, 0x08, 0x8E);
 }

@@ -10,7 +10,7 @@ idt_load:
 isr%1:
   cli
   push byte 0
-  push byte %1
+  push %1
   jmp isr_common_stub
 %endmacro
 
@@ -18,7 +18,7 @@ isr%1:
     global isr%1
 isr%1:
       cli     ; Disable interrupts.
-      push byte %1  ; Push the interrupt number
+      push %1  ; Push the interrupt number
       jmp isr_common_stub
 %endmacro
 
@@ -55,7 +55,7 @@ ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
 
-# ISR_NOERRCODE 128
+ISR_NOERRCODE 128
 
 extern isr_handler
 
@@ -116,6 +116,7 @@ IRQ   12, 44
 IRQ   13, 45
 IRQ   14, 46
 IRQ   15, 47
+
 
 [EXTERN irq_handler]
 
@@ -179,11 +180,14 @@ syscall_asm:
   mov eax, syscall_handler
   call eax
 
+  mov ebx, eax
+
   pop eax
   pop gs
   pop fs
   pop es
   pop ds
   popa
+  mov eax, ebx
   add esp, 8
   iret

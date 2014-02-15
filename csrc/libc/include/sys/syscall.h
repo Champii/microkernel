@@ -84,6 +84,7 @@ int sys_sleep(u32 milli);
 int sys_send(u64 to, void *msg, u32 size);
 int sys_recv(u64 from, void *pool, u32 pool_size);
 void sys_invlpg(void *vaddr);
+void sys_write(int, const char *);
 
 #ifdef __cplusplus
 }

@@ -13,18 +13,29 @@
 
 # include             "mm.h"
 # include             "isrs.h"
+# include             "task.h"
 
 # define              KERNEL_STACK_SIZE 2048
+
+typedef struct task   t_task;
+
+typedef struct        s_mess
+{
+  t_task              *sender_task;
+  void                *msg;
+  unsigned            size;
+  struct s_mess       *next;
+}                     t_mess;
 
 // This structure defines a 'task' - a process.
 typedef struct        task
 {
   int                 id;               // Process ID.
-  // unsigned            esp, ebp;         // Stack and base pointers.
-  // unsigned            eip;              // Instruction pointer.
   struct s_regs       regs;
+  unsigned            sleep_count;
   unsigned            kernel_stack;
   t_page_directory    *page_directory;  // Page directory.
+  t_mess              *mess_queue;
   struct task         *next;            // The next task in a linked list.
 }                     t_task;
 
@@ -45,5 +56,9 @@ void                  move_stack(void *new_stack_start, unsigned size);
 int                   getpid();
 
 void                  switch_to_user_mode();
+
+void                  schedule_task(t_task *task);
+void                  reschedule_task(t_task *task);
+void                  unschedule_task(t_task *task);
 
 #endif

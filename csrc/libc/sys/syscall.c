@@ -80,3 +80,14 @@ void sys_invlpg(void *vaddr)
 
   SYSCALL1(SYS_INVLPG, res, vaddr);
 }
+
+//TMP
+void sys_write(int color, const char *str)
+{
+  int res;
+
+  SYSCALL2(8, res, color, str);
+
+  // size = size;
+}
+

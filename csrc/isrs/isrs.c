@@ -62,6 +62,11 @@ void                      isr_handler(struct s_regs *r)
     printk(COLOR_WHITE, "\n");
     for (;;);
   }
+  else if (interrupt_handlers[r->int_no] != 0)
+  {
+    t_isr handler = interrupt_handlers[r->int_no];
+    handler(r);
+  }
 }
 
 void                      irq_handler(struct s_regs *r)
@@ -112,6 +117,7 @@ void                      init_isrs()
   idt_set_gate(29, (unsigned)isr29, 0x08, 0x8E);
   idt_set_gate(30, (unsigned)isr30, 0x08, 0x8E);
   idt_set_gate(31, (unsigned)isr31, 0x08, 0x8E);
+  idt_set_gate(128, (unsigned)isr128, 0x08, 0x8E);
 
   /*IRQ*/
   idt_set_gate(32, (unsigned)irq0, 0x08, 0x8E);
