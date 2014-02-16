@@ -24,29 +24,29 @@ u64 *io_pid = 0;
 
 void print_error(int ret)
 {
-  kwrite(COLOR_WHITE, "Error : ", 0);
+  write(COLOR_WHITE, "Error : ", 0);
   switch (ret)
   {
     case -1:
-      kwrite(COLOR_WHITE, "No more memory\n", 0);
+      write(COLOR_WHITE, "No more memory\n", 0);
       break;
     case -2:
-      kwrite(COLOR_WHITE, "Operation not permitted\n", 0);
+      write(COLOR_WHITE, "Operation not permitted\n", 0);
       break;
     case -3:
-      kwrite(COLOR_WHITE, "Invalid argument\n", 0);
+      write(COLOR_WHITE, "Invalid argument\n", 0);
       break;
     case -4:
-      kwrite(COLOR_WHITE, "No such process\n", 0);
+      write(COLOR_WHITE, "No such process\n", 0);
       break;
     case -5:
-      kwrite(COLOR_WHITE, "Bad address\n", 0);
+      write(COLOR_WHITE, "Bad address\n", 0);
       break;
     case -6:
-      kwrite(COLOR_WHITE, "Bad message\n", 0);
+      write(COLOR_WHITE, "Bad message\n", 0);
       break;
     case -7:
-      kwrite(COLOR_WHITE, "Message too long\n", 0);
+      write(COLOR_WHITE, "Message too long\n", 0);
       break;
 
   }
@@ -60,45 +60,28 @@ void service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
   char str[10];
   char *tmp;
 
-  // unsigned len = *(unsigned *)params;
-
+  sender = sender;
 
   tmp = (char *)(params + 1);
 
-
   itoa_base(test[0], str, 10);
 
-  sender = sender;
-  params = params;
-  ret = ret;
-  ret_size = ret_size;
-  kwrite(COLOR_WHITE, "SENDER PID RPC  : ", 0);
-  kwrite(COLOR_WHITE, str, 0);
-  kwrite(COLOR_WHITE, "\n", 0);
+  // kwrite(COLOR_WHITE, "SENDER PID RPC  : ", 0);
+  // kwrite(COLOR_WHITE, str, 0);
+  // kwrite(COLOR_WHITE, "\n", 0);
 
-  // itoa_base((unsigned)*(unsigned **)params, str, 16);
-  kwrite(COLOR_WHITE, "PARAM 1 : ", 0);
-  kwrite(COLOR_WHITE, (char *)tmp, 0);
-  kwrite(COLOR_WHITE, "\n", 0);
-
+  // kwrite(COLOR_WHITE, "PARAM 1 : ", 0);
+  // kwrite(COLOR_WHITE, (char *)tmp, 0);
+  // kwrite(COLOR_WHITE, "\n", 0);
 
   u64 *res;
   if (!strncmp(tmp, "paging", 7))
-  {
-
-    kwrite(COLOR_WHITE, "ASK PAGING PID !\n", 0);
     res = paging_pid;
-  }
   else if (!strncmp(tmp, "io", 7))
-  {
-
-    kwrite(COLOR_WHITE, "ASK IO PID !\n", 0);
     res = io_pid;
-  }
 
   *ret = res;
   *ret_size = 8;
-  // sys_send(sender, params, 4);
 }
 
 void get_services_pid()

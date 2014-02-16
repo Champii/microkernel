@@ -112,25 +112,16 @@ void                      init_services(int count, struct s_multiboot_module *mo
       {
         memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
         new_stack = (unsigned *)(ph->p_vaddr + ph->p_memsz);
-        // printk(COLOR_WHITE, "Created stack : 0x");
-        // printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
-        // printk(COLOR_WHITE, "\n");
-
       }
       switch_page_directory(cur_dir);
 
       ph = (Elf32_Phdr *)(((char *)ph) + elf->e_phentsize);
     }
 
-    // printk(COLOR_WHITE, "Entry point = 0x");
-    // printk(COLOR_WHITE, my_putnbr_base(elf->e_entry, "0123456789ABCDEF"));
-    // printk(COLOR_WHITE, "\n");
-
     services[i].task = (void *)task_split[1];
     services[i].entry = (void *)elf->e_entry;
     services[i].stack = new_stack;
     services[i].pd = new_pd;
-
 
   }
 

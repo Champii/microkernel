@@ -288,7 +288,8 @@ int listen_rpc(void)
   while (1)
   {
     // kwrite(COLOR_WHITE, "Test\n", 0);
-    sys_ret = recv(RCV_ANYONE, &msg_buff, MSG_MAXSIZE, &sender);
+    sys_ret = recv(RCV_ANYONE, msg_buff, MSG_MAXSIZE, &sender);
+    // kwrite(COLOR_WHITE, "Hello\n", 0);
 
     if (sys_ret < 0)
       return sys_ret;
@@ -307,7 +308,6 @@ int listen_rpc(void)
     if (sys_ret < 0)
       return sys_ret;
 
-    // write(COLOR_WHITE, "Hello\n", 0);
 
     reg_rpcs[*func_id].handler(
         sender,
@@ -323,7 +323,7 @@ int listen_rpc(void)
       memcpy(&msg_buff[sizeof(u32)], ret, ret_size);
       // free(ret);
 
-      sys_ret = send(sender, &msg_buff, ret_size + sizeof(u32));
+      sys_ret = send(sender, msg_buff, ret_size + sizeof(u32));
 
       if (sys_ret < 0)
         return sys_ret;

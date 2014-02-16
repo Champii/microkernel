@@ -34,16 +34,7 @@ unsigned next_pid = 1;
 
 void init_tasking()
 {
-  // asm volatile("cli");
 
-  // move_stack((void*)0xE0000000, 0x2000);
-
-  // current_task = ready_queue = (t_task*)kmalloc(sizeof(t_task));
-  // current_task->id = 0;
-  // current_task->page_directory = cur_dir;
-  // current_task->next = 0;
-
-  // asm volatile("sti");
 }
 
 void move_stack(void *new_stack_start, unsigned size)
@@ -129,25 +120,6 @@ void switch_to_user_mode()
      "
      : : "c"(ready_queue->regs.esp), "d"(ready_queue->regs.eip));
 
-/*   asm volatile("  \w
-     mov $0x23, %ax; \
-     mov %ax, %ds; \
-     mov %ax, %es; \
-     mov %ax, %fs; \
-     mov %ax, %gs; \
-                   \
-     mov %esp, %eax; \
-     pushl $0x23; \
-     pushl %eax; \
-     pushf; \
-     pop %eax; \
-     or $0x200, %eax; \
-     push %eax;   \
-     pushl $0x1B; \
-     push $1f; \
-     iret; \
-   1: \
-     ");*/
 }
 
 t_task *get_last_of(t_task *list)
@@ -186,83 +158,28 @@ void remove_from(t_task **list, t_task *item)
     while (tmp->next != item)
       tmp = tmp->next;
 
+    if (!tmp->next)
+      printk(COLOR_WHITE, "NO TASK TO REMOVE TO\n");
     tmp->next = item->next;
   }
 }
 
 void schedule_task(t_task *task)
 {
-  // printk(COLOR_WHITE, "-> Schedule task ");
-  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
-  // printk(COLOR_WHITE, "\n");
-  // add to ready queue
   add_to_end_of(&ready_queue, task);
-
 }
 
 void reschedule_task(t_task *task)
 {
-  // printk(COLOR_WHITE, "-> Rechedule task ");
-  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
-  // printk(COLOR_WHITE, "\n");
-
   remove_from(&wait_queue, task);
-  // t_task *wait_prev = wait_queue;
 
-  // if (wait_prev)
-  //   while (wait_prev->next != task)
-  //     wait_prev = wait_prev->next;
-
-  // // remove from wait queue
-  // if (wait_prev)
-  //   if (task->next)
-  //     wait_prev->next = task->next;
-
-  // add to ready queue
   schedule_task(task);
-
 }
 
 void unschedule_task(t_task *task)
 {
-  // printk(COLOR_WHITE, "-> Unschedule task ");
-  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
-  // printk(COLOR_WHITE, "\n");
-
   remove_from(&ready_queue, task);
-  // t_task *ready_prev = ready_queue;
 
-  // // remove from ready queue
-  // if (ready_prev)
-  // {
-
-  //   printk(COLOR_RED, "Task to find : 0x");
-  //   printk(COLOR_RED, my_putnbr_base((unsigned)task, "0123456789ABCDEF"));
-  //   printk(COLOR_RED, "\n");
-  //   while (ready_prev && ready_prev->next != task)
-  //   {
-  //     printk(COLOR_RED, "Cur ready_prev next = 0x");
-  //     printk(COLOR_RED, my_putnbr_base(ready_prev, "0123456789ABCDEF"));
-  //     printk(COLOR_RED, "\n");
-
-  //     ready_prev = ready_prev->next;
-  //   }
-
-  //   if (!ready_prev)
-  //   {
-  //     printk(COLOR_RED, "ERROR : Cannot unschedule : Task not found\n");
-  //     return ;
-  //   }
-
-  //   if (task->next)
-  //     ready_prev->next = task->next;
-  //   else
-  //     ready_prev->next = 0;
-  // }
-  // else
-  //   ready_queue = task->next;
-
-  // add to wait queue
   add_to_end_of(&wait_queue, task);
 }
 
@@ -274,8 +191,20 @@ void check_sleeping()
   {
     t_task *tmp_next = tmp->next;
 
+    // printk(COLOR_WHITE, "sleeping task needed tick : ");
+    // printk(COLOR_WHITE, my_putnbr_base(tmp->sleep_count, "0123456789"));
+    // printk(COLOR_WHITE, " cur tick : ");
+    // printk(COLOR_WHITE, my_putnbr_base(tick, "0123456789"));
+    // printk(COLOR_WHITE, " PID : ");
+    // printk(COLOR_WHITE, my_putnbr_base(tmp->id, "0123456789"));
+    // printk(COLOR_WHITE, "\n");
     if (tmp->sleep_count < tick)
+    {
+      printk(COLOR_WHITE, "Wake up : ");
+      printk(COLOR_WHITE, my_putnbr_base(tmp->id, "0123456789"));
+      printk(COLOR_WHITE, "\n");
       reschedule_task(tmp);
+    }
 
     tmp = tmp_next;
   }
@@ -286,62 +215,44 @@ void switch_task(struct s_regs *regs)
   if (!current_task)
     return;
 
-  asm volatile("cli");
   check_sleeping();
 
   memcpy(&current_task->regs, regs, sizeof (*regs));
+
+  // printk(COLOR_WHITE, "Switch task : cur = ");
+  // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
 
   current_task = current_task->next;
 
   if (!current_task)
     current_task = ready_queue;
 
-
+  // printk(COLOR_WHITE, " next = ");
+  // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
 
   if (!current_task->regs.cs)
   {
     unsigned eip = current_task->regs.eip;
     unsigned esp = current_task->regs.esp;
     unsigned ebp = current_task->regs.ebp;
+    unsigned eflags = current_task->regs.eflags;
 
     memcpy(&current_task->regs, regs, sizeof (*regs));
     current_task->regs.eip = eip;
-    // current_task->regs.esp = esp;
     current_task->regs.useresp = esp;
     current_task->regs.ebp = ebp;
-    // current_task->regs.ebp = 0;
+    current_task->regs.eflags |= eflags;
   }
 
-  // unsigned save_esp = regs->esp;
-  // printk(COLOR_WHITE, "Current Kernel stack = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->esp, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
-  // printk(COLOR_WHITE, "Current User stack = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->useresp, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
-  // printk(COLOR_WHITE, "Current eip = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->eip, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
-  // printk(COLOR_WHITE, "Current ebp = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->ebp, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
-
-  // set_kernel_stack(regs->esp);
-
   memcpy(regs, &current_task->regs, sizeof (*regs));
-
-  // regs->esp = save_esp;
 
   set_kernel_stack(current_task->kernel_stack + KERNEL_STACK_SIZE);
   cur_dir = current_task->page_directory;
   switch_page_directory(current_task->page_directory);
 
 
-  asm volatile("sti");
-
 }
-
-
 
 int getpid()
 {

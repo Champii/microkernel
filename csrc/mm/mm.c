@@ -335,6 +335,9 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, ") at 0x");
   printk(COLOR_WHITE, my_putnbr_base(faulting_address, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, " PID = ");
+  printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789"));
+  printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault");
 
   for(;;);

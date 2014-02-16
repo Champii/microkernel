@@ -11,7 +11,8 @@ SRC = \
 	stdlib/malloc.c\
 	string/memcpy.c\
 	string/memset.c\
-      	string/strlen.c\
+	string/port.c\
+	string/strlen.c\
 	string/strcmp.c\
 	string/strncmp.c\
 	string/strncpy.c\

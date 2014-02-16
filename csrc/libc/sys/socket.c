@@ -32,10 +32,13 @@ int recv(u64 from, void *pool, u32 pool_size, u64 *pid)
 {
   int sys_ret;
 
+  // kwrite(COLOR_WHITE, "Recv enter\n", 0);
   while (!(sys_ret = sys_recv(from, pool, pool_size)))
   {
-    sleep(1000);
+    // sleep(10);
   }
+
+  // kwrite(COLOR_WHITE, "Recv return\n", 0);
 
   if (pid && sys_ret >= 0)
     *pid = *((u64 *) (&((char *) pool)[sys_ret]));

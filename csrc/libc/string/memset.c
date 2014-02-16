@@ -17,3 +17,13 @@ void* memset(void* s1, int c, size_t n)
 
   return s1;
 }
+
+unsigned short *memsetw(unsigned short *dest, unsigned short val, int count)
+{
+  int                 i;
+
+  for (i = 0; i < count; i++)
+    dest[i] = val;
+
+  return dest;
+}

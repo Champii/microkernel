@@ -29,7 +29,6 @@ int write(int color, const char *str, unsigned size)
   // size = size;
 
   // return 0;
-  kwrite(15, "TEST\n", 4);
   return rpc_write(color, str, size);
 }
 
