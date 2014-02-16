@@ -14,7 +14,7 @@ const char *rpc_pl_desc[4] =
   "ic", // exec
   "i", // exit
   "iI", // kill
-  "Ii" // service_pid
+  "Is" // service_pid
 };
 
 int rpc_exec(char *name)

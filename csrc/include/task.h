@@ -13,6 +13,7 @@
 
 # include             "mm.h"
 # include             "isrs.h"
+# include             "process.h"
 # include             "task.h"
 
 # define              KERNEL_STACK_SIZE 2048
@@ -21,7 +22,7 @@ typedef struct task   t_task;
 
 typedef struct        s_mess
 {
-  t_task              *sender_task;
+  u64                 sender;
   void                *msg;
   unsigned            size;
   struct s_mess       *next;

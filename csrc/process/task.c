@@ -28,6 +28,8 @@ extern unsigned read_eip();
 
 extern unsigned tick;
 
+struct s_regs *current_user_regs = 0;
+
 unsigned next_pid = 1;
 
 void init_tasking()
@@ -148,35 +150,73 @@ void switch_to_user_mode()
      ");*/
 }
 
-void schedule_task(t_task *task)
+t_task *get_last_of(t_task *list)
 {
-  // add to ready queue
-  t_task *tmp_task = ready_queue;
+  t_task *tmp = list;
 
-  if (!tmp_task)
-    ready_queue = task;
+  if (!tmp)
+    return (0);
+
+  while (tmp->next)
+    tmp = tmp->next;
+
+  return (tmp);
+}
+
+void add_to_end_of(t_task **list, t_task *item)
+{
+  t_task *tmp = get_last_of(*list);
+
+  if (tmp)
+    tmp->next = item;
+  else
+    *list = item;
+
+  item->next = 0;
+}
+
+void remove_from(t_task **list, t_task *item)
+{
+  t_task *tmp = *list;
+
+  if (tmp == item)
+    *list = tmp->next;
   else
   {
-    while (tmp_task->next)
-      tmp_task = tmp_task->next;
+    while (tmp->next != item)
+      tmp = tmp->next;
 
-    tmp_task->next = task;
-    task->next = 0;
+    tmp->next = item->next;
   }
+}
+
+void schedule_task(t_task *task)
+{
+  // printk(COLOR_WHITE, "-> Schedule task ");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
+  // printk(COLOR_WHITE, "\n");
+  // add to ready queue
+  add_to_end_of(&ready_queue, task);
+
 }
 
 void reschedule_task(t_task *task)
 {
-  t_task *wait_prev = wait_queue;
+  // printk(COLOR_WHITE, "-> Rechedule task ");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
+  // printk(COLOR_WHITE, "\n");
 
-  if (wait_prev)
-    while (wait_prev->next != task)
-      wait_prev = wait_prev->next;
+  remove_from(&wait_queue, task);
+  // t_task *wait_prev = wait_queue;
 
-  // remove from wait queue
-  if (wait_prev)
-    if (task->next)
-      wait_prev->next = task->next;
+  // if (wait_prev)
+  //   while (wait_prev->next != task)
+  //     wait_prev = wait_prev->next;
+
+  // // remove from wait queue
+  // if (wait_prev)
+  //   if (task->next)
+  //     wait_prev->next = task->next;
 
   // add to ready queue
   schedule_task(task);
@@ -185,33 +225,45 @@ void reschedule_task(t_task *task)
 
 void unschedule_task(t_task *task)
 {
-  t_task *ready_prev = ready_queue;
+  // printk(COLOR_WHITE, "-> Unschedule task ");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "01234564789"));
+  // printk(COLOR_WHITE, "\n");
 
-  // remove from ready queue
-  if (ready_prev)
-  {
-    while (ready_prev && ready_prev->next != task)
-      ready_prev = ready_prev->next;
+  remove_from(&ready_queue, task);
+  // t_task *ready_prev = ready_queue;
 
-    if (ready_prev && task->next)
-      ready_prev->next = task->next;
-  }
-  else
-    ready_queue = task->next;
+  // // remove from ready queue
+  // if (ready_prev)
+  // {
+
+  //   printk(COLOR_RED, "Task to find : 0x");
+  //   printk(COLOR_RED, my_putnbr_base((unsigned)task, "0123456789ABCDEF"));
+  //   printk(COLOR_RED, "\n");
+  //   while (ready_prev && ready_prev->next != task)
+  //   {
+  //     printk(COLOR_RED, "Cur ready_prev next = 0x");
+  //     printk(COLOR_RED, my_putnbr_base(ready_prev, "0123456789ABCDEF"));
+  //     printk(COLOR_RED, "\n");
+
+  //     ready_prev = ready_prev->next;
+  //   }
+
+  //   if (!ready_prev)
+  //   {
+  //     printk(COLOR_RED, "ERROR : Cannot unschedule : Task not found\n");
+  //     return ;
+  //   }
+
+  //   if (task->next)
+  //     ready_prev->next = task->next;
+  //   else
+  //     ready_prev->next = 0;
+  // }
+  // else
+  //   ready_queue = task->next;
 
   // add to wait queue
-  t_task *tmp_task = wait_queue;
-
-  if (!tmp_task)
-    wait_queue = task;
-  else
-  {
-    while (tmp_task->next)
-      tmp_task = tmp_task->next;
-
-    tmp_task->next = task;
-    task->next = 0;
-  }
+  add_to_end_of(&wait_queue, task);
 }
 
 void check_sleeping()

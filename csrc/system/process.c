@@ -25,8 +25,12 @@ extern unsigned           initial_esp;
 extern unsigned           next_pid;
 
 extern u64                *pl_pid;
+extern u64                *paging_pid;
+extern u64                *io_pid;
 
 extern unsigned           tick;
+
+extern struct s_regs      *current_user_regs;
 
 int                       create_process(u64 *user_pid)
 {
@@ -42,34 +46,51 @@ int                       create_process(u64 *user_pid)
 
   new_task->id = pid;
 
-  printk(COLOR_WHITE, "Created process ! :");
+  printk(COLOR_WHITE, "Created process : ");
   printk(COLOR_WHITE, my_putnbr_base(pid, "0123456789"));
   printk(COLOR_WHITE, "\n");
 
   return 0;
 }
 
-int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt)
+static void               push_pid_on_stack(unsigned **stack, u64 *pid)
 {
-  t_task *task = task_struct;
+  unsigned *pid_split = (unsigned *)pid;
+  **stack = pid_split[1];
+  *stack -= 1;
+  **stack = pid_split[0];
+  *stack -= 1;
+}
 
-  task->regs.ebp = 0;
-  // task->regs.esp = (unsigned)stack;
-  task->regs.eip = (unsigned)entry;
-  task->page_directory = root_pt;
-  task->kernel_stack = (unsigned)kmalloc_a(KERNEL_STACK_SIZE);
-  task->next = 0;
+static void               prepare_stack(t_task *task, void **stack)
+{
+  unsigned *ustack = *stack;
 
   // Push pl_pid on stack
   switch_page_directory(task->page_directory);
 
-  unsigned *pid_split = (unsigned *)pl_pid;
-  unsigned *ustack = stack;
-  *ustack = pid_split[1];
-  ustack -= 1;
-  *ustack = pid_split[0];
-  ustack -= 1;
+  // if Program Loader, push all services pid on stack (reverse order)
+  if (task->id == 1)
+  {
+    // printk(COLOR_WHITE, "STACK = ");
+    // printk(COLOR_WHITE, my_putnbr_base((unsigned)stack, "0123456789ABCDEF"));
+    // printk(COLOR_WHITE, "\n");
+    push_pid_on_stack(&ustack, io_pid);
+    // printk(COLOR_WHITE, "STACK = ");
+    // printk(COLOR_WHITE, my_putnbr_base((unsigned)stack, "0123456789ABCDEF"));
+    // printk(COLOR_WHITE, "\n");
+    push_pid_on_stack(&ustack, paging_pid);
+  }
+
+  push_pid_on_stack(&ustack, pl_pid);
+    // printk(COLOR_WHITE, "STACK = ");
+    // printk(COLOR_WHITE, my_putnbr_base((unsigned)stack, "0123456789ABCDEF"));
+    // printk(COLOR_WHITE, "\n");
+
   task->regs.esp = (unsigned)ustack;
+
+  // if (task->id == 1)
+  // {
 
   // printk(COLOR_WHITE, "stack[0] : 0x");
   // printk(COLOR_WHITE, my_putnbr_base(*ustack, "0123456789ABCDEF"));
@@ -77,25 +98,42 @@ int                       run_process(void *task_struct, void *entry, void *stac
   // printk(COLOR_WHITE, "stack[1] : 0x");
   // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 1), "0123456789ABCDEF"));
   // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[2] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 2), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[3] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 3), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[4] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 4), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[5] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 5), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "stack[6] : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(*(ustack + 6), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  // }
 
   switch_page_directory(cur_dir);
+}
+
+int                       run_process(void *task_struct, void *entry, void *stack, void *root_pt)
+{
+  t_task *task = task_struct;
+
+  task->regs.ebp = 0;
+  task->regs.eip = (unsigned)entry;
+  task->page_directory = root_pt;
+  task->kernel_stack = (unsigned)kmalloc_a(KERNEL_STACK_SIZE);
+  task->next = 0;
+
+  prepare_stack(task, &stack);
 
   schedule_task(task);
 
-  // t_task *tmp_task = (t_task*)ready_queue;
 
-  // if (!tmp_task)
-  //   tmp_task = ready_queue = task;
-  // else
-  // {
-  //   while (tmp_task->next)
-  //     tmp_task = tmp_task->next;
-
-  //   tmp_task->next = task;
-
-  // }
-
-  printk(COLOR_WHITE, "Running process ! ");
+  printk(COLOR_WHITE, "Running process : ");
   printk(COLOR_WHITE, my_putnbr_base(task->id, "0123456789"));
   printk(COLOR_WHITE, "\n");
 
@@ -116,10 +154,11 @@ int                       wait(u64 pid)
 
 void                      sleep(u32 milli)
 {
-  // printk(COLOR_WHITE, "SLEEP KERNELSIDE !\n");
   current_task->sleep_count = tick + (milli / 10);
 
-  unschedule_task(current_task);
-  // switch_task(&current_task->regs);
+  t_task *tmp = current_task;
+
+  switch_task(current_user_regs);
+  unschedule_task(tmp);
 }
 

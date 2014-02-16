@@ -24,6 +24,7 @@ void sys_printk(int color, char *str)
 
 int send(u64 to, void *msg, u32 size)
 {
+  // write(COLOR_WHITE, (char *)msg, 0);
   return sys_send(to, msg, size);
 }
 
@@ -33,14 +34,8 @@ int recv(u64 from, void *pool, u32 pool_size, u64 *pid)
 
   while (!(sys_ret = sys_recv(from, pool, pool_size)))
   {
-    sleep(100);
+    sleep(1000);
   }
-
-  char tmp[10];
-
-  itoa_base(sys_ret, tmp, 10);
-  sys_printk(COLOR_WHITE, "out of sleep ! Ret = ");
-  sys_printk(COLOR_WHITE, tmp);
 
   if (pid && sys_ret >= 0)
     *pid = *((u64 *) (&((char *) pool)[sys_ret]));

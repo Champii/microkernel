@@ -19,7 +19,29 @@
 extern t_page_directory   *cur_dir;
 
 extern t_task             *ready_queue;
+extern t_task             *wait_queue;
 extern t_task             *current_task;
+
+u64                       get_pid_of(t_task *task)
+{
+  u64                     res;
+  unsigned                *pid_split = (unsigned *)&res;
+
+  pid_split[0] = task->id;
+  pid_split[1] = (unsigned)task;
+
+  return (res);
+}
+
+t_task                    *get_task_of(u64 pid)
+{
+  t_task                  *res;
+  unsigned                *pid_split = (unsigned *)&pid;
+
+  res = (t_task *)pid_split[1];
+
+  return (res);
+}
 
 int                       queue_mess(u64 pid, void *msg, unsigned size)
 {
@@ -31,7 +53,7 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
 
   memset(new_mess, 0, sizeof(*new_mess));
 
-  new_mess->sender_task = current_task;
+  new_mess->sender = get_pid_of(current_task);
   new_mess->msg = msg;
   new_mess->size = size;
   new_mess->next = 0;
@@ -51,20 +73,20 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
   printk(COLOR_WHITE, " Task = 0x");
   printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
   printk(COLOR_WHITE, " msg = 0x");
-  printk(COLOR_WHITE, my_putnbr_base(msg, "0123456789ABCDEF"));
+  printk(COLOR_WHITE, my_putnbr_base((unsigned)msg, "0123456789ABCDEF"));
   printk(COLOR_WHITE, " = ");
   printk(COLOR_WHITE, (char *)msg);
   printk(COLOR_WHITE, " msgqueue = ");
-  printk(COLOR_WHITE, my_putnbr_base(task->mess_queue, "0123456789"));
+  printk(COLOR_WHITE, my_putnbr_base((unsigned)task->mess_queue, "0123456789"));
   printk(COLOR_WHITE, "\n");
 
   return 0;
 }
 
-int                       send(u64 pid, void *msg, unsigned size)
+int                       send(u64 to, void *msg, unsigned size)
 {
 
-  return queue_mess(pid, msg, size);
+  return queue_mess(to, msg, size);
 }
 
 void                      map_ipc_page(unsigned address, t_task *from, t_task *to)
@@ -103,57 +125,56 @@ int                       recv(u64 pid, void *pool, unsigned pool_size)
 
   if (!top)
   {
-    // printk(COLOR_WHITE, "MSGQUEUE EMPTY for : ");
-    // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
-    // printk(COLOR_WHITE, "\n");
+    printk(COLOR_WHITE, "MSGQUEUE EMPTY for : ");
+    printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
+    printk(COLOR_WHITE, "\n");
     return 0;
   }
 
-  printk(COLOR_WHITE, "\nMSGQUEUE : 0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)top, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " Task pid = 0x");
-  printk(COLOR_WHITE, my_putnbr_base(top->sender_task->id, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " msg = 0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)top->msg, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " = ");
-  printk(COLOR_WHITE, (char *)top->msg);
-  printk(COLOR_WHITE, " size = ");
-  printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
-  printk(COLOR_WHITE, "\n");
 
   //mmap
-  map_ipc_page((unsigned)top->msg, top->sender_task, current_task);
+  map_ipc_page((unsigned)top->msg, get_task_of(top->sender), current_task);
 
   //copy send -> recv
   unsigned offset = (unsigned)top->msg % 0x1000;
   void *tmp = (void *)(IPC_PAGE_1_ADDR + offset);
   memcpy(pool, tmp, top->size);
 
-  printk(COLOR_WHITE, "AFTER MMAP msg = 0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\nAFTER MMAP msg = ");
-  printk(COLOR_WHITE, (char *)pool);
-  printk(COLOR_WHITE, " size = ");
-  printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
-  printk(COLOR_WHITE, "\n");
-
   //ummap
   umap_ipc_page(current_task);
+
+  memcpy(((char *)pool) + top->size, &top->sender, sizeof(u64));
 
   current_task->mess_queue = current_task->mess_queue->next;
 
   // switch_page_directory(current_task->page_directory);
   // unsigned                *pid_split = (unsigned *)&pid;
 
-  // printk(COLOR_WHITE, "RECV : 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " Task = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " msg = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pool, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " size = ");
-  // printk(COLOR_WHITE, my_putnbr_base(pool_size, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, "RECV : ");
+  printk(COLOR_WHITE, " msg = 0x");
+  printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
+  printk(COLOR_WHITE, " size = ");
+  printk(COLOR_WHITE, my_putnbr_base(pool_size, "0123456789"));
+  printk(COLOR_WHITE, " func id = ");
+  printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)pool, "0123456789"));
+  printk(COLOR_WHITE, " = ");
+  printk(COLOR_WHITE, " GOT = ");
+  printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
+  printk(COLOR_WHITE, " = ");
+
+  int i;
+  char c[2];
+  c[1] = 0;
+  for (i = 4; i < top->size; i++)
+  {
+    c[0] = ((char *)pool)[i];
+    printk(COLOR_WHITE, c);
+  }
+  printk(COLOR_WHITE, "\n");
+
+  printk(COLOR_WHITE, "RETURN RECV");
+  printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
+  printk(COLOR_WHITE, "\n");
 
   return (top->size);
 }

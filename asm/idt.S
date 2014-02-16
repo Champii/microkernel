@@ -180,14 +180,14 @@ syscall_asm:
   mov eax, syscall_handler
   call eax
 
-  mov ebx, eax
+  ; mov ebx, eax
 
-  pop eax
+  pop ebx
   pop gs
   pop fs
   pop es
   pop ds
   popa
-  mov eax, ebx
+  ; mov eax, ebx
   add esp, 8
   iret

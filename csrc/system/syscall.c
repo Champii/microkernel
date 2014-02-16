@@ -20,6 +20,8 @@
 
 extern void               syscall();
 
+extern struct s_regs      *current_user_regs;
+
 void                      syscall_handler(struct s_regs *regs);
 
 static void               *syscalls[9] =
@@ -40,6 +42,8 @@ unsigned                  num_syscalls = 9;
 
 void                      syscall_handler(struct s_regs *regs)
 {
+
+  current_user_regs = regs;
     // printk(COLOR_WHITE, "Syscall ! ");
     // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
     // printk(COLOR_WHITE, "\n");
@@ -52,7 +56,7 @@ void                      syscall_handler(struct s_regs *regs)
   if (!location)
     return;
 
-  volatile int ret = 0;
+  unsigned ret = 0;
   asm volatile (" \
     push %1; \
     push %2; \
@@ -65,13 +69,16 @@ void                      syscall_handler(struct s_regs *regs)
     pop %%ebx; \
     pop %%ebx; \
     pop %%ebx; \
-  " : "=a" (ret) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (location));
+  " : "+a" (ret) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (location));
 
   // printk(COLOR_WHITE, "RETURN FROM SYSCALL = ");
   // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
   // printk(COLOR_WHITE, "\n");
 
   regs->eax = ret;
+  // printk(COLOR_WHITE, "RETURN FROM SYSCALL = ");
+  // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
 
 }
 

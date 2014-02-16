@@ -18,6 +18,7 @@ extern "C"
 
 int exec(char *name);
 
+int kwrite(int color, const char *str, unsigned size);
 int write(int color, const char *str, unsigned size);
 int write_at(int x, int y, int color, char c);
 

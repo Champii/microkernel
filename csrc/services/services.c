@@ -21,7 +21,18 @@ extern t_page_directory   *page_dir;
 extern t_page_directory   *cur_dir;
 
 u64                       *pl_pid = 0;
+u64                       *paging_pid = 0;
+u64                       *io_pid = 0;
 
+struct s_service_task
+{
+  void *task;
+  void *entry;
+  void *stack;
+  void *pd;
+};
+
+struct s_service_task     services[3];
 
 
 int                       check_elf_magic(unsigned char *to_check)
@@ -38,7 +49,6 @@ int                       check_elf_magic(unsigned char *to_check)
     }
     i++;
   }
-  // printk(COLOR_GREEN, "Good Magic ! Loading...\n");
   return (0);
 }
 
@@ -55,12 +65,7 @@ void                      init_services(int count, struct s_multiboot_module *mo
     Elf32_Ehdr *elf;
     Elf32_Phdr *ph;
 
-
-    // unsigned *reloc_process_mem = kmalloc_a(module[i].mod_end - module[i].mod_start);
-    // memcpy(reloc_process_mem, module[i].mod_start, module[i].mod_end - module[i].mod_start);
-
     elf = (Elf32_Ehdr *)module[i].mod_start;
-    // elf = (Elf32_Ehdr *)reloc_process_mem;
 
     if (check_elf_magic(elf->e_ident) < 0)
       continue ;
@@ -75,6 +80,10 @@ void                      init_services(int count, struct s_multiboot_module *mo
     // if process loader
     if (i == 0)
       pl_pid = task;
+    else if (i == 1)
+      paging_pid = task;
+    else if (i == 2)
+      io_pid = task;
 
     //empty address space
     t_page_directory *new_pd = clone_directory(page_dir);
@@ -103,9 +112,9 @@ void                      init_services(int count, struct s_multiboot_module *mo
       {
         memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
         new_stack = (unsigned *)(ph->p_vaddr + ph->p_memsz);
-        printk(COLOR_WHITE, "Created stack : 0x");
-        printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
-        printk(COLOR_WHITE, "\n");
+        // printk(COLOR_WHITE, "Created stack : 0x");
+        // printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
+        // printk(COLOR_WHITE, "\n");
 
       }
       switch_page_directory(cur_dir);
@@ -113,21 +122,18 @@ void                      init_services(int count, struct s_multiboot_module *mo
       ph = (Elf32_Phdr *)(((char *)ph) + elf->e_phentsize);
     }
 
+    // printk(COLOR_WHITE, "Entry point = 0x");
+    // printk(COLOR_WHITE, my_putnbr_base(elf->e_entry, "0123456789ABCDEF"));
+    // printk(COLOR_WHITE, "\n");
 
-
-    // new stack
-
-    //load
-
-    //create
-
-    printk(COLOR_WHITE, "Entry point = 0x");
-    printk(COLOR_WHITE, my_putnbr_base(elf->e_entry, "0123456789ABCDEF"));
-    printk(COLOR_WHITE, "\n");
-
-
-    run_process((void *)task_split[1], (void *)elf->e_entry, new_stack, new_pd);
+    services[i].task = (void *)task_split[1];
+    services[i].entry = (void *)elf->e_entry;
+    services[i].stack = new_stack;
+    services[i].pd = new_pd;
 
 
   }
+
+  for (i = 0; i < count; i++)
+    run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
 }
