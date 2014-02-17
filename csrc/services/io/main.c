@@ -38,31 +38,31 @@ void print_error(int ret)
 
 void write_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
 {
-  char tmp[10];
-  printk(COLOR_WHITE, "WRITE RPC !\n");
+  // char tmp[10];
   sender = sender;
   unsigned *uparams = (unsigned *)params;
+  char str[1024];
 
-  unsigned color = *uparams;
-  uparams += sizeof(u32);
-  char *str = (char *)uparams;
-  uparams += sizeof(u32);
-  unsigned size = *uparams;
 
-  color = color;
-  size = size;
+  unsigned color = (unsigned)*uparams;
+  uparams += 1;
+  unsigned str_size = *((unsigned *)uparams);
+  uparams += 1;
+  memcpy(str, (char *)uparams, str_size);
+  uparams = (unsigned *)(((char *)uparams) + str_size);
+  // unsigned size = *uparams;
 
-  printk(15, str);
+  printk(color, str);
 
-  itoa_base(color, tmp, 10);
-  printk(COLOR_WHITE, "STR = ");
-  printk(COLOR_WHITE, str);
-  printk(COLOR_WHITE, " color = ");
-  printk(COLOR_WHITE, tmp);
-  itoa_base(size, tmp, 10);
-  printk(COLOR_WHITE, " size = ");
-  printk(COLOR_WHITE, tmp);
-  printk(COLOR_WHITE, "\n");
+  // itoa_base(color, tmp, 10);
+  // printk(COLOR_WHITE, "STR = ");
+  // printk(COLOR_WHITE, str);
+  // printk(COLOR_WHITE, " color = ");
+  // printk(COLOR_WHITE, tmp);
+  // itoa_base(size, tmp, 10);
+  // printk(COLOR_WHITE, " size = ");
+  // printk(COLOR_WHITE, tmp);
+  // printk(COLOR_WHITE, "\n");
 
   // params = params;
   *ret = 0;
@@ -104,14 +104,15 @@ int main()
   int ret;
   if ((ret = register_rpc(rpcs, 4)) < 0)
   {
-    printk(COLOR_WHITE, "Error Register RPC\n");
+    printk(COLOR_WHITE, "IO: Error Register RPC : ");
     print_error(ret);
   }
 
   // sys_send(prog_loader_pid, "lol", 4);
+  printk(COLOR_WHITE, "IO service listening...\n");
   if ((ret = listen_rpc()) < 0)
   {
-    printk(COLOR_WHITE, "Error Listen rpc RPC\n");
+    printk(COLOR_WHITE, "IO: Error Listen rpc RPC : ");
     print_error(ret);
   }
   for (;;);

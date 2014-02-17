@@ -24,29 +24,29 @@ u64 *io_pid = 0;
 
 void print_error(int ret)
 {
-  write(COLOR_WHITE, "Error : ", 0);
+  kwrite(COLOR_WHITE, "Error : ", 0);
   switch (ret)
   {
     case -1:
-      write(COLOR_WHITE, "No more memory\n", 0);
+      kwrite(COLOR_WHITE, "No more memory\n", 0);
       break;
     case -2:
-      write(COLOR_WHITE, "Operation not permitted\n", 0);
+      kwrite(COLOR_WHITE, "Operation not permitted\n", 0);
       break;
     case -3:
-      write(COLOR_WHITE, "Invalid argument\n", 0);
+      kwrite(COLOR_WHITE, "Invalid argument\n", 0);
       break;
     case -4:
-      write(COLOR_WHITE, "No such process\n", 0);
+      kwrite(COLOR_WHITE, "No such process\n", 0);
       break;
     case -5:
-      write(COLOR_WHITE, "Bad address\n", 0);
+      kwrite(COLOR_WHITE, "Bad address\n", 0);
       break;
     case -6:
-      write(COLOR_WHITE, "Bad message\n", 0);
+      kwrite(COLOR_WHITE, "Bad message\n", 0);
       break;
     case -7:
-      write(COLOR_WHITE, "Message too long\n", 0);
+      kwrite(COLOR_WHITE, "Message too long\n", 0);
       break;
 
   }
@@ -62,7 +62,7 @@ void service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
 
   sender = sender;
 
-  tmp = (char *)(params + 1);
+  tmp = (char *)(params + sizeof(u32));
 
   itoa_base(test[0], str, 10);
 
@@ -75,10 +75,12 @@ void service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
   // kwrite(COLOR_WHITE, "\n", 0);
 
   u64 *res;
-  if (!strncmp(tmp, "paging", 7))
+  if (!strncmp(tmp, "paging", 6))
     res = paging_pid;
-  else if (!strncmp(tmp, "io", 7))
+  else if (!strncmp(tmp, "io", 2))
     res = io_pid;
+  else
+    res = 0;
 
   *ret = res;
   *ret_size = 8;
@@ -95,7 +97,7 @@ int main()
   // unsigned *pid_split = (unsigned *)&prog_loader_pid;
   // char str[10];
 
-  kwrite(COLOR_WHITE, "Starting Program Loader service\n", 0);
+  // kwrite(COLOR_WHITE, "Starting Program Loader service\n", 0);
 
   get_services_pid();
 
@@ -112,7 +114,7 @@ int main()
   int ret;
   if ((ret = register_rpc(rpcs, 4)) < 0)
   {
-    kwrite(COLOR_WHITE, "Error Register RPC\n", 0);
+    kwrite(COLOR_WHITE, "PL: Error Register RPC\n", 0);
     print_error(ret);
 
   }
@@ -120,7 +122,7 @@ int main()
   // sys_send(prog_loader_pid, "lol", 4);
   if ((ret = listen_rpc()) < 0)
   {
-    kwrite(COLOR_WHITE, "Error Listen rpc RPC\n", 0);
+    kwrite(COLOR_WHITE, "PL: Error Listen rpc RPC\n", 0);
     print_error(ret);
   }
 
