@@ -1,5 +1,6 @@
 SRC = \
 	others/kill.c\
+	others/errno.c\
 	rpc/io.c\
 	rpc/paging.c\
 	rpc/program_loader.c\

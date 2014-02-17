@@ -17,5 +17,7 @@
 #define EBADMSG   6  /* Bad message */
 #define EMSGSIZE  7  /* Message too long */
 
+void print_error(int ret);
+
 
 #endif /* !ERRNO_H_ */

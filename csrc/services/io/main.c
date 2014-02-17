@@ -1,73 +1,10 @@
 #include <rpc/rpc.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <screen.h>
 
-unsigned itoa_base(int n, char *s, int base);
-
-#include "screen.h"
-
-void print_error(int ret)
-{
-  printk(COLOR_RED, "Error : ");
-  switch (ret)
-  {
-    case -1:
-      printk(COLOR_RED, "No more memory\n");
-      break;
-    case -2:
-      printk(COLOR_RED, "Operation not permitted\n");
-      break;
-    case -3:
-      printk(COLOR_RED, "Invalid argument\n");
-      break;
-    case -4:
-      printk(COLOR_RED, "No such process\n");
-      break;
-    case -5:
-      printk(COLOR_RED, "Bad address\n");
-      break;
-    case -6:
-      printk(COLOR_RED, "Bad message\n");
-      break;
-    case -7:
-      printk(COLOR_RED, "Message too long\n");
-      break;
-
-  }
-}
-
-void write_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
-{
-  // char tmp[10];
-  sender = sender;
-  unsigned *uparams = (unsigned *)params;
-  char str[1024];
-
-
-  unsigned color = (unsigned)*uparams;
-  uparams += 1;
-  unsigned str_size = *((unsigned *)uparams);
-  uparams += 1;
-  memcpy(str, (char *)uparams, str_size);
-  uparams = (unsigned *)(((char *)uparams) + str_size);
-  // unsigned size = *uparams;
-
-  printk(color, str);
-
-  // itoa_base(color, tmp, 10);
-  // printk(COLOR_WHITE, "STR = ");
-  // printk(COLOR_WHITE, str);
-  // printk(COLOR_WHITE, " color = ");
-  // printk(COLOR_WHITE, tmp);
-  // itoa_base(size, tmp, 10);
-  // printk(COLOR_WHITE, " size = ");
-  // printk(COLOR_WHITE, tmp);
-  // printk(COLOR_WHITE, "\n");
-
-  // params = params;
-  *ret = 0;
-  *ret_size = 4;
-}
+#include <rpc.h>
 
 void welcome_screen()
 {
@@ -75,7 +12,7 @@ void welcome_screen()
 
   printk(COLOR_BLUE, "*******************************************************************************\n");
   printk(COLOR_BLUE, "*                                                                             *\n");
-  printk(COLOR_BLUE, "*                                 Micro Kernel                                *\n");
+  printk(COLOR_BLUE, "*                                    PhenX                                    *\n");
   printk(COLOR_BLUE, "*                                                                             *\n");
   printk(COLOR_BLUE, "*                             Welcome to UserLand                             *\n");
   printk(COLOR_BLUE, "*                                                                             *\n");
@@ -90,31 +27,8 @@ int main()
 
   printk(COLOR_WHITE, "Starting IO service\n");
 
+  register_listen_rpcs();
 
-  struct rpc rpcs[4];
-  rpcs[0].func_desc = "iisi";
-  rpcs[0].handler = &write_rpc;
-  rpcs[1].func_desc = "iiii";
-  rpcs[1].handler = &write_rpc;
-  rpcs[2].func_desc = "iiii";
-  rpcs[2].handler = &write_rpc;
-  rpcs[3].func_desc = "iiii";
-  rpcs[3].handler = &write_rpc;
-
-  int ret;
-  if ((ret = register_rpc(rpcs, 4)) < 0)
-  {
-    printk(COLOR_WHITE, "IO: Error Register RPC : ");
-    print_error(ret);
-  }
-
-  // sys_send(prog_loader_pid, "lol", 4);
-  printk(COLOR_WHITE, "IO service listening...\n");
-  if ((ret = listen_rpc()) < 0)
-  {
-    printk(COLOR_WHITE, "IO: Error Listen rpc RPC : ");
-    print_error(ret);
-  }
   for (;;);
   return (0);
 }
