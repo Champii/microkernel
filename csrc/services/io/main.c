@@ -1,12 +1,23 @@
-#include <rpc/rpc.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <screen.h>
+/************************************************
+*
+* Micro Kernel
+*
+* - Paging Main
+*
+* Florian Greiner <florian.greiner@epitech.eu>
+*
+************************************************/
 
-#include <rpc.h>
 
-void welcome_screen()
+#include                  <rpc/rpc.h>
+#include                  <string.h>
+#include                  <unistd.h>
+#include                  <errno.h>
+#include                  <screen.h>
+
+#include                  <rpc.h>
+
+void                      welcome_screen()
 {
   clear_screen();
 
@@ -20,7 +31,7 @@ void welcome_screen()
   printk(COLOR_WHITE, "\n");
 }
 
-int main()
+int                       main()
 {
 
   welcome_screen();

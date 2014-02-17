@@ -9,6 +9,7 @@
 ************************************************/
 #include                  "system.h"
 #include                  "screen.h"
+#include                  "task.h"
 #include                  "idt.h"
 #include                  "kmalloc.h"
 #include                  "mm.h"
