@@ -14,6 +14,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <restrict_rpc.h>
 
 #define COLOR_WHITE 15
 
@@ -307,7 +308,9 @@ int listen_rpc(void)
   while (1)
   {
     // kwrite(COLOR_WHITE, "Test\n", 0);
+      // kwrite(COLOR_WHITE, "TEST\n", 0);
     sys_ret = recv(RCV_ANYONE, msg_buff, MSG_MAXSIZE, &sender);
+      // kwrite(COLOR_WHITE, "TEST2\n", 0);
     // kwrite(COLOR_WHITE, "Hello\n", 0);
 
     if (sys_ret < 0)
@@ -335,6 +338,10 @@ int listen_rpc(void)
   // kwrite(COLOR_WHITE, str, 0);
   // kwrite(COLOR_WHITE, "\n", 0);
 
+    if (check_restrict_rpc(*func_id, sender) < 0)
+      return -EPERM;
+
+
     reg_rpcs[*func_id].handler(
         sender,
         ((void *) &msg_buff[sizeof(u32)]),
@@ -345,6 +352,7 @@ int listen_rpc(void)
     {
       if (ret_size + sizeof(u32) > MSG_MAXSIZE)
         return -EMSGSIZE;
+
 
       memcpy(&msg_buff[sizeof(u32)], ret, ret_size);
       // free(ret);

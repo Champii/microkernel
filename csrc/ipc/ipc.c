@@ -50,11 +50,13 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
   t_mess                  *tmp = task->mess_queue;
 
   t_mess                  *new_mess = kmalloc(sizeof(*new_mess));
+  char                    *msg_str = kmalloc(size);
 
   memset(new_mess, 0, sizeof(*new_mess));
 
   new_mess->sender = get_pid_of(current_task);
-  new_mess->msg = msg;
+  memcpy(msg_str, msg, size);
+  new_mess->msg = msg_str;
   new_mess->size = size;
   new_mess->next = 0;
 

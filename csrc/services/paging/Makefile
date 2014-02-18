@@ -30,9 +30,10 @@ LDFLAGS				= -L../../libc -lmikro_libc
 
 # Srcs
 C_SRC 				= main.c 						\
+								mm.c 				\
 								rpc/rpc.c 				\
 								rpc/mmap.c 				\
-								rpc/mmap_sys.c 		\
+								rpc/mmap_phys.c 		\
 								rpc/munmap.c 			\
 								rpc/_create_as.c 	\
 								rpc/_delete_as.c 	\

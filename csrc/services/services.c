@@ -14,6 +14,7 @@
 #include                  "screen.h"
 #include                  "kmalloc.h"
 #include                  "process.h"
+#include                  "task.h"
 #include                  "elf.h"
 #include                  "mm.h"
 
@@ -50,6 +51,74 @@ int                       check_elf_magic(unsigned char *to_check)
     i++;
   }
   return (0);
+}
+
+#define PAGING_HEAP_ADDR 0x10000000
+#define PAGING_AS_ADDR 0x20000000
+
+void                      map_services_as_in_paging()
+{
+  t_page_directory        *pl_dir = services[0].pd;
+  t_page_directory        *paging_dir = services[1].pd;
+  t_page_directory        *io_dir = services[2].pd;
+
+  t_page *pl_dir_virt = get_page(pl_dir, 0, page_dir);
+  t_page *paging_dir_virt = get_page(paging_dir, 0, page_dir);
+  t_page *io_dir_virt = get_page(io_dir, 0, page_dir);
+
+  alloc_page_at(pl_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR, 1, paging_dir), 0, 1);
+  alloc_page_at(paging_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
+  alloc_page_at(io_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + 0x2000, 1, paging_dir), 0, 1);
+
+  // alloc page for temp heap
+  int i;
+  for (i = PAGING_HEAP_ADDR; i < PAGING_HEAP_ADDR + (1024 * 0x1000); i++)
+    alloc_page(get_page(i, 1, paging_dir), 0, 1);
+}
+
+static void               push_pid_on_stack(unsigned **stack, u64 *pid)
+{
+  unsigned *pid_split = (unsigned *)pid;
+  **stack = pid_split[1];
+  *stack -= 1;
+  **stack = pid_split[0];
+  *stack -= 1;
+}
+
+static void               push_addr_on_stack(unsigned **stack, unsigned addr)
+{
+  **stack = addr;
+  *stack -= 1;
+}
+
+static void               prepare_stack(t_task *task, t_page_directory *root_pd, void **stack)
+{
+  unsigned                *ustack = *stack;
+
+  // Push pl_pid on stack
+  switch_page_directory(root_pd);
+
+  // if Program Loader, push all services pid on stack (reverse order)
+  if (task->id == 1)
+  {
+    push_pid_on_stack(&ustack, io_pid);
+    push_pid_on_stack(&ustack, paging_pid);
+  }
+  else if (task->id == 2)
+  {
+    printk(COLOR_WHITE, "First frame = ");
+    printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
+    printk(COLOR_WHITE, "\n");
+    push_addr_on_stack(&ustack, first_frame());
+    push_addr_on_stack(&ustack, PAGING_AS_ADDR);
+
+  }
+
+  push_pid_on_stack(&ustack, pl_pid);
+
+  switch_page_directory(cur_dir);
+
+  *stack = ustack;
 }
 
 void                      init_services(int count, struct s_multiboot_module *module)
@@ -125,6 +194,11 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
   }
 
+  map_services_as_in_paging();
+
   for (i = 0; i < count; i++)
+  {
+    prepare_stack(services[i].task, services[i].pd, &services[i].stack);
     run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
+  }
 }

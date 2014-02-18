@@ -96,9 +96,9 @@ unsigned                  virt_to_phys(unsigned virt)
   unsigned                offset;
   unsigned                table_idx;
 
-  offset = virt % 0x1000;
   virt /= 0x1000;
   table_idx = virt / 1024;
+  offset = virt % 0x1000;
 
   phys = (page_dir->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
 
@@ -139,9 +139,9 @@ static void               set_frame(unsigned frame_addr)
 //   return (frames[idx] & (0x1 << off));
 // }
 
-static unsigned          first_frame()
+unsigned                  first_frame()
 {
-  unsigned               i, j;
+  unsigned                i, j;
 
   for (i = 0; i < INDEX_FROM_BIT(nframes); i++)
   {

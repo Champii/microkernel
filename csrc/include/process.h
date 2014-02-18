@@ -11,6 +11,10 @@
 #ifndef                   __PROCESS_H__
 # define                  __PROCESS_H__
 
+# define                  PROG_LOADER_ID 1
+# define                  PAGING_ID 2
+# define                  IO_ID 3
+
 typedef unsigned int      u32;
 typedef unsigned long long u64;
 

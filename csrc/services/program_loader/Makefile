@@ -30,6 +30,7 @@ LDFLAGS				= -L../../libc -lmikro_libc
 
 # Srcs
 C_SRC 				= main.c 							\
+								load_elf.c 					\
 								rpc/rpc.c 					\
 								rpc/exec.c 					\
 								rpc/exit.c 					\

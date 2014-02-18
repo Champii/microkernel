@@ -14,8 +14,11 @@
 #include                  <errno.h>
 
 #include                  <rpc.h>
+#include                  <restrict_rpc.h>
 
 #define                   COLOR_WHITE 15
+
+extern u64                prog_loader_pid;
 
 extern const char         *rpc_paging_desc[6];
 
@@ -23,18 +26,24 @@ void                      register_listen_rpcs()
 {
   struct rpc              rpcs[6];
 
+  init_restrict_rpc();
+
   rpcs[0].func_desc = rpc_paging_desc[0];
   rpcs[0].handler = &mmap_rpc;
   rpcs[1].func_desc = rpc_paging_desc[1];
-  rpcs[1].handler = &mmap_sys_rpc;
+  rpcs[1].handler = &mmap_phys_rpc;
   rpcs[2].func_desc = rpc_paging_desc[2];
   rpcs[2].handler = &munmap_rpc;
   rpcs[3].func_desc = rpc_paging_desc[3];
   rpcs[3].handler = &_create_as_rpc;
-  rpcs[3].func_desc = rpc_paging_desc[4];
-  rpcs[3].handler = &_delete_as_rpc;
-  rpcs[3].func_desc = rpc_paging_desc[5];
-  rpcs[3].handler = &_mmap_sys_rpc;
+  rpcs[4].func_desc = rpc_paging_desc[4];
+  rpcs[4].handler = &_delete_as_rpc;
+  rpcs[5].func_desc = rpc_paging_desc[5];
+  rpcs[5].handler = &_mmap_sys_rpc;
+
+  restrict_rpc(3, prog_loader_pid);
+  restrict_rpc(4, prog_loader_pid);
+  restrict_rpc(5, prog_loader_pid);
 
   int ret;
   if ((ret = register_rpc(rpcs, 4)) < 0)

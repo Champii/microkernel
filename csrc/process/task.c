@@ -251,7 +251,6 @@ void switch_task(struct s_regs *regs)
   cur_dir = current_task->page_directory;
   switch_page_directory(current_task->page_directory);
 
-
 }
 
 int getpid()

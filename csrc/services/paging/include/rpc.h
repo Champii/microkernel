@@ -15,7 +15,7 @@
 
 // RPC Handlers
 void                      mmap_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      mmap_sys_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
+void                      mmap_phys_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
 void                      munmap_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
 
 // Private RPC to process loader

@@ -15,6 +15,7 @@
 #include                  <screen.h>
 
 #include                  <rpc.h>
+#include                  <restrict_rpc.h>
 
 #define                   COLOR_WHITE 15
 
@@ -23,6 +24,9 @@ extern char               *rpc_io_desc[4];
 void                      register_listen_rpcs()
 {
   struct rpc rpcs[4];
+
+  init_restrict_rpc();
+
   rpcs[0].func_desc = rpc_io_desc[0];
   rpcs[0].handler = &write_rpc;
   rpcs[1].func_desc = rpc_io_desc[1];
