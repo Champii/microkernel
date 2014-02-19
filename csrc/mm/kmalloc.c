@@ -14,8 +14,10 @@
 extern unsigned           end;
 unsigned                  placement_address = (unsigned)&end;
 
+
 static void               *_kmalloc(unsigned size, int align, unsigned *phys)
 {
+
   void                    *tmp;
 
   if (align && placement_address & 0xFFFFF000)
