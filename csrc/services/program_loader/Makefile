@@ -29,7 +29,13 @@ CFLAGS 				= -I../../libc/include/ -Iinclude/ -m32 -nostdlib -Wall -Wextra -Werr
 LDFLAGS				= -L../../libc -lmikro_libc
 
 # Srcs
-C_SRC 				= main.c
+C_SRC 				= main.c 							\
+								load_elf.c 					\
+								rpc/rpc.c 					\
+								rpc/exec.c 					\
+								rpc/exit.c 					\
+								rpc/kill.c 					\
+								rpc/service_pid.c 	\
 
 # Objs
 C_OBJ 				= $(C_SRC:.c=.o)

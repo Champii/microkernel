@@ -55,8 +55,10 @@ unsigned              virt_to_phys(unsigned virt);
 unsigned              phys_to_virt(unsigned phys);
 
 void                  init_mm();
+unsigned              first_frame();
 t_page                *get_page(unsigned, int, t_page_directory *);
 int                   alloc_page(t_page *page, int is_kernel, int is_writeable);
+void                  alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable);
 t_page_directory      *clone_directory(t_page_directory *src);
 void                  switch_page_directory(t_page_directory *new_dir);
 /*LOOK stos (asm) => page table*/

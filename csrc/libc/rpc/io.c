@@ -11,7 +11,7 @@
 
 const char *rpc_io_desc[4] =
 {
-  "iiii",   // write
+  "iisi",   // write
   "iiiic",  // write_at
   "c",      // read
   "c",      // read_one

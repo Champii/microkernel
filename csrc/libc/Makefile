@@ -1,5 +1,8 @@
 SRC = \
 	others/kill.c\
+	others/errno.c\
+	others/get_argument.c\
+	others/restrict_rpc.c\
 	rpc/io.c\
 	rpc/paging.c\
 	rpc/program_loader.c\
@@ -11,7 +14,8 @@ SRC = \
 	stdlib/malloc.c\
 	string/memcpy.c\
 	string/memset.c\
-      	string/strlen.c\
+	string/port.c\
+	string/strlen.c\
 	string/strcmp.c\
 	string/strncmp.c\
 	string/strncpy.c\

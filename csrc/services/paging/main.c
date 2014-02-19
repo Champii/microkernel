@@ -1,63 +1,52 @@
-#include <rpc/rpc.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/syscall.h>
+/************************************************
+*
+* Micro Kernel
+*
+* - Paging Main
+*
+* Florian Greiner <florian.greiner@epitech.eu>
+*
+************************************************/
 
-#define COLOR_WHITE 15
+#include                  <rpc/rpc.h>
+#include                  <stdio.h>
+#include                  <unistd.h>
+#include                  <sys/syscall.h>
+#include                  <errno.h>
 
-unsigned itoa_base(int n, char *s, int base);
+#include                  <rpc.h>
+#include                  <mm.h>
 
-void print_error(int ret)
-{
-  kwrite(COLOR_WHITE, "PAGING = Error : ", 0);
-  switch (ret)
-  {
-    case -1:
-      kwrite(COLOR_WHITE, "PAGING = No more memory\n", 0);
-      break;
-    case -2:
-      kwrite(COLOR_WHITE, "PAGING = Operation not permitted\n", 0);
-      break;
-    case -3:
-      kwrite(COLOR_WHITE, "PAGING = Invalid argument\n", 0);
-      break;
-    case -4:
-      kwrite(COLOR_WHITE, "PAGING = No such process\n", 0);
-      break;
-    case -5:
-      kwrite(COLOR_WHITE, "PAGING = Bad address\n", 0);
-      break;
-    case -6:
-      kwrite(COLOR_WHITE, "PAGING = Bad message\n", 0);
-      break;
-    case -7:
-      kwrite(COLOR_WHITE, "PAGING = Message too long\n", 0);
-      break;
+#define                   COLOR_WHITE 15
 
-  }
-}
+int itoa_base(int n, char *str, unsigned size);
+
+extern unsigned           *stack_start;
+
+unsigned                  *pd_addr;
+unsigned                  start_frame;
 
 int main()
 {
-  int ret;
-  u64 pid;
-  // unsigned *pid_split = (unsigned *)&pid;
-  // char tmp[10];
 
+  write(COLOR_WHITE, "Starting Paging service\n", 0);
 
+  pd_addr = (unsigned *)(*(stack_start));
+  // start_frame = *(stack_start + 3);
 
-  // if ((ret = write(1, "Lol", 4)) < 0)
-  //   print_error(ret);
+  // init_mm();
+  // start_frame = start_frame;
+  char tmp[15];
 
-
-  if ((ret = paging_service_pid(&pid)) < 0)
-    print_error(ret);
-
-  // itoa_base(pid_split[0], tmp, 10);
-  // kwrite(COLOR_WHITE, "PAGING = Paging Service LOADED !\n", 0);
-  // kwrite(COLOR_WHITE, "PAGING = Paging service PID = ", 0);
+  itoa_base((unsigned)pd_addr, tmp, 16);
+  kwrite(COLOR_WHITE, " pd_addr = 0x", 0);
+  kwrite(COLOR_WHITE, tmp, 0);
+  // itoa_base(start_frame, tmp, 16);
+  // kwrite(COLOR_WHITE, "Start frame = ", 0);
   // kwrite(COLOR_WHITE, tmp, 0);
   // kwrite(COLOR_WHITE, "\n", 0);
+
+  register_listen_rpcs();
 
   for (;;);
 

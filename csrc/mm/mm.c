@@ -9,6 +9,7 @@
 ************************************************/
 #include                  "system.h"
 #include                  "screen.h"
+#include                  "task.h"
 #include                  "idt.h"
 #include                  "kmalloc.h"
 #include                  "mm.h"
@@ -98,9 +99,9 @@ unsigned                  virt_to_phys(unsigned virt)
   unsigned                offset;
   unsigned                table_idx;
 
-  offset = virt % 0x1000;
   virt /= 0x1000;
   table_idx = virt / 1024;
+  offset = virt % 0x1000;
 
   phys = (page_dir->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
 
@@ -141,9 +142,9 @@ static void               set_frame(unsigned frame_addr)
 //   return (frames[idx] & (0x1 << off));
 // }
 
-static unsigned          first_frame()
+unsigned                  first_frame()
 {
-  unsigned               i, j;
+  unsigned                i, j;
 
   for (i = 0; i < INDEX_FROM_BIT(nframes); i++)
   {
@@ -386,6 +387,9 @@ void                      page_fault(struct s_regs *regs)
 
   printk(COLOR_WHITE, ") at 0x");
   printk(COLOR_WHITE, my_putnbr_base(faulting_address, "0123456789ABCDEF"));
+  printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, " PID = ");
+  printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789"));
   printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault");
 

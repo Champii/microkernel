@@ -34,7 +34,7 @@ int recv(u64 from, void *pool, u32 pool_size, u64 *pid)
 
   while (!(sys_ret = sys_recv(from, pool, pool_size)))
   {
-    sleep(1000);
+    // sleep(10);
   }
 
   if (pid && sys_ret >= 0)

@@ -44,9 +44,6 @@ void                      syscall_handler(struct s_regs *regs)
 {
 
   current_user_regs = regs;
-    // printk(COLOR_WHITE, "Syscall ! ");
-    // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
-    // printk(COLOR_WHITE, "\n");
 
   if (regs->eax >= num_syscalls)
     return;
@@ -71,14 +68,7 @@ void                      syscall_handler(struct s_regs *regs)
     pop %%ebx; \
   " : "+a" (ret) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (location));
 
-  // printk(COLOR_WHITE, "RETURN FROM SYSCALL = ");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
-
   regs->eax = ret;
-  // printk(COLOR_WHITE, "RETURN FROM SYSCALL = ");
-  // printk(COLOR_WHITE, my_putnbr_base(regs->eax, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
 
 }
 
