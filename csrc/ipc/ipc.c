@@ -47,6 +47,26 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
 {
   unsigned                *pid_split = (unsigned *)&pid;
   t_task                  *task = (t_task *)pid_split[1];
+
+  // printk(COLOR_WHITE, "\nSEND : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " Task = 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " msg = 0x");
+  // printk(COLOR_WHITE, my_putnbr_base((unsigned)msg, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " = ");
+  // printk(COLOR_WHITE, (((char *)msg) + 8));
+  // printk(COLOR_WHITE, " func id = ");
+  // printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)msg, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "Pid queued: ");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
+  if (!task)
+  {
+    printk(COLOR_RED, "ERROR QUEUE MESS : TASK = 0\n");
+    return 0;
+  }
   t_mess                  *tmp = task->mess_queue;
 
   t_mess                  *new_mess = kmalloc(sizeof(*new_mess));
@@ -62,25 +82,20 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
 
   if (tmp)
   {
+    // printk(COLOR_WHITE, "RPC SEND : 0x");
+    // printk(COLOR_WHITE, my_putnbr_base(task, "0123456789ABCDEF"));
     while (tmp->next)
-      tmp = tmp->next;
+    {
 
-    tmp->next = new_mess;
+      tmp = tmp->next;
+    }
+
+    if (tmp)
+      tmp->next = new_mess;
   }
   else
     task->mess_queue = new_mess;
 
-  // printk(COLOR_WHITE, "\nSEND : 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " Task = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " msg = 0x");
-  // printk(COLOR_WHITE, my_putnbr_base((unsigned)msg, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, " = ");
-  // printk(COLOR_WHITE, (char *)msg);
-  // printk(COLOR_WHITE, " func id = ");
-  // printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)msg, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
 
   return 0;
 }
@@ -149,10 +164,10 @@ int                       recv(u64 pid, void *pool, unsigned pool_size)
   current_task->mess_queue = current_task->mess_queue->next;
 
   // switch_page_directory(current_task->page_directory);
-  // unsigned                *pid_split = (unsigned *)&pid;
+  // unsigned                *pid_split = (unsigned *)(((char *)pool) + 4);
 
   // printk(COLOR_WHITE, "RECV : 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
   // printk(COLOR_WHITE, " msg = 0x");
   // printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
   // printk(COLOR_WHITE, " size = ");

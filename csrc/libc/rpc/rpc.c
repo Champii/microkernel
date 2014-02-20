@@ -19,8 +19,8 @@
 #define COLOR_WHITE 15
 
 u64 prog_loader_pid;
-static u64 paging_pid = 0;
-static u64 io_pid = 0;
+u64 paging_pid = 0;
+u64 io_pid = 0;
 
 static struct rpc *reg_rpcs = 0;
 static unsigned reg_rpcs_num = 0;
@@ -214,6 +214,7 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
 
   sys_ret = send(pid, &msg_buff, msg_size);
 
+  // kwrite(COLOR_WHITE, "RPC\n", 0);
   if (sys_ret < 0)
     return sys_ret;
 

@@ -88,6 +88,6 @@ typedef struct
   Elf32_Word    p_align;                /* Segment alignment */
 } Elf32_Phdr;
 
-int                       load_elf(u64 pid, void *elf_start, unsigned *stack);
+int                       load_elf(u64 pid, void *elf_start, unsigned *entry, unsigned *stack);
 
 #endif                    /*__ELF_H__*/

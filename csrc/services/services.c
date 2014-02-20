@@ -25,6 +25,9 @@ u64                       *pl_pid = 0;
 u64                       *paging_pid = 0;
 u64                       *io_pid = 0;
 
+struct s_multiboot_module *program_names;
+struct s_multiboot_module *programs[32];
+
 struct s_service_task
 {
   void *task;
@@ -45,11 +48,17 @@ int                       check_elf_magic(unsigned char *to_check)
   {
     if (to_check[i] != magic[i])
     {
-      printk(COLOR_RED, "MAGIC DON'T MATCH ELF, SKIPPING MODULE\n");
+      if (io_pid == 0)
+      {
+        printk(COLOR_RED, "SERVICE ELF MAGIC DON'T MATCH, GENERAL ERROR !\n");
+        for (;;);
+      }
+
       return (-1);
     }
     i++;
   }
+
   return (0);
 }
 
@@ -62,9 +71,9 @@ void                      map_services_as_in_paging()
   t_page_directory        *paging_dir = services[1].pd;
   t_page_directory        *io_dir = services[2].pd;
 
-  t_page *pl_dir_virt = get_page(pl_dir, 0, page_dir);
-  t_page *paging_dir_virt = get_page(paging_dir, 0, page_dir);
-  t_page *io_dir_virt = get_page(io_dir, 0, page_dir);
+  t_page *pl_dir_virt = get_page((unsigned)pl_dir, 0, page_dir);
+  t_page *paging_dir_virt = get_page((unsigned)paging_dir, 0, page_dir);
+  t_page *io_dir_virt = get_page((unsigned)io_dir, 0, page_dir);
 
   alloc_page_at(pl_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR, 1, paging_dir), 0, 1);
   alloc_page_at(paging_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
@@ -79,17 +88,31 @@ void                      map_services_as_in_paging()
 static void               push_pid_on_stack(unsigned **stack, u64 *pid)
 {
   unsigned *pid_split = (unsigned *)pid;
+  *stack -= 1;
   **stack = pid_split[1];
   *stack -= 1;
   **stack = pid_split[0];
-  *stack -= 1;
 }
 
 static void               push_addr_on_stack(unsigned **stack, unsigned addr)
 {
-  **stack = addr;
   *stack -= 1;
+  **stack = addr;
 }
+// static void               push_pid_on_stack(unsigned **stack, u64 *pid)
+// {
+//   unsigned *pid_split = (unsigned *)pid;
+//   **stack = pid_split[1];
+//   *stack -= 1;
+//   **stack = pid_split[0];
+//   *stack -= 1;
+// }
+
+// static void               push_addr_on_stack(unsigned **stack, unsigned addr)
+// {
+//   **stack = addr;
+//   *stack -= 1;
+// }
 
 static void               prepare_stack(t_task *task, t_page_directory *root_pd, void **stack)
 {
@@ -106,19 +129,40 @@ static void               prepare_stack(t_task *task, t_page_directory *root_pd,
   }
   else if (task->id == 2)
   {
-    printk(COLOR_WHITE, "First frame = ");
-    printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
-    printk(COLOR_WHITE, "\n");
+    // printk(COLOR_WHITE, "First frame = ");
+    // printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
+    // printk(COLOR_WHITE, "\n");
     push_addr_on_stack(&ustack, first_frame());
     push_addr_on_stack(&ustack, PAGING_AS_ADDR);
 
   }
 
   push_pid_on_stack(&ustack, pl_pid);
+  push_addr_on_stack(&ustack, (unsigned)ustack);
+  // printk(COLOR_WHITE, "Address pushed on stack : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base((unsigned)*ustack, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
 
+  ustack -= 1;
   switch_page_directory(cur_dir);
 
   *stack = ustack;
+}
+
+void                      prepare_processes(int count)
+{
+  int                     i;
+
+  map_services_as_in_paging();
+
+  for (i = 0; i < 3; i++)
+  {
+    prepare_stack(services[i].task, services[i].pd, &services[i].stack);
+    run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
+    // printk(COLOR_WHITE, "Process stack : 0x");
+    // printk(COLOR_WHITE, my_putnbr_base(services[i].stack, "0123456789ABCDEF"));
+    // printk(COLOR_WHITE, "\n");
+  }
 }
 
 void                      init_services(int count, struct s_multiboot_module *module)
@@ -136,8 +180,23 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
     elf = (Elf32_Ehdr *)module[i].mod_start;
 
-    if (check_elf_magic(elf->e_ident) < 0)
-      continue ;
+    int ret;
+    if ((ret = check_elf_magic(elf->e_ident)) < 0)
+    {
+      int j;
+
+      for (j = i; j < count; j++)
+      {
+        if (j == 3)
+          program_names = &module[j];
+        else if (j >= 4)
+          programs[j - 4] = &module[j];
+      }
+
+      prepare_processes(count);
+
+      return ;
+    }
 
     unsigned *task_split;
     u64 *task = kmalloc(sizeof(u64));
@@ -194,11 +253,4 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
   }
 
-  map_services_as_in_paging();
-
-  for (i = 0; i < count; i++)
-  {
-    prepare_stack(services[i].task, services[i].pd, &services[i].stack);
-    run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
-  }
 }

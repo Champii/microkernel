@@ -21,13 +21,13 @@ void                      welcome_screen()
 {
   clear_screen();
 
-  printk(COLOR_BLUE, "*******************************************************************************\n");
-  printk(COLOR_BLUE, "*                                                                             *\n");
-  printk(COLOR_BLUE, "*                                    PhenX                                    *\n");
-  printk(COLOR_BLUE, "*                                                                             *\n");
-  printk(COLOR_BLUE, "*                             Welcome to UserLand                             *\n");
-  printk(COLOR_BLUE, "*                                                                             *\n");
-  printk(COLOR_BLUE, "*******************************************************************************\n");
+  printk(COLOR_BLUE, "********************************************************************************");
+  printk(COLOR_BLUE, "*                                                                              *");
+  printk(COLOR_BLUE, "*                                    PhenX                                     *");
+  printk(COLOR_BLUE, "*                                                                              *");
+  printk(COLOR_BLUE, "*                             Welcome to UserLand                              *");
+  printk(COLOR_BLUE, "*                                                                              *");
+  printk(COLOR_BLUE, "********************************************************************************");
   printk(COLOR_WHITE, "\n");
 }
 

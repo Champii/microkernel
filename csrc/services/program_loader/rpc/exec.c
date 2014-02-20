@@ -36,13 +36,14 @@ void                      exec_rpc(u64 sender, void *params, void **ret, unsigne
   if ((sys_ret = rpc_create_as(new_pid)) < 0)
     print_error(sys_ret);
 
+  unsigned entry;
   unsigned stack;
 
   //FIXME
-  if ((sys_ret = load_elf(new_pid, (void *)prog_name, &stack)) < 0)
+  if ((sys_ret = load_elf(new_pid, (void *)prog_name, &entry, &stack)) < 0)
     print_error(sys_ret);
 
-  if ((sys_ret = sys_run_process(&new_pid, 0, &stack, 0)) < 0)
+  if ((sys_ret = sys_run_process(&new_pid, (void *)entry, (void *)stack, 0)) < 0)
     print_error(sys_ret);
 
 

@@ -26,9 +26,10 @@ PATH_ASM 			= asm
 PATH_LD 			= link
 PATH_PROCESS 	= $(PATH_C)/process
 PATH_SERVICES = $(PATH_C)/services
+PATH_REGULAR 	= $(PATH_C)/regular_prog
 PATH_SYSTEM 	= $(PATH_C)/system
 PATH_INCLUDE  = $(PATH_C)/include
-PATH_IPC   = $(PATH_C)/ipc
+PATH_IPC   		= $(PATH_C)/ipc
 PATH_SCREEN   = $(PATH_C)/screen
 PATH_MM   		= $(PATH_C)/mm
 PATH_GDT   		= $(PATH_MM)/gdt
@@ -104,6 +105,7 @@ clean:
 	@echo -n "\n$(BLUE)[Cleaning]$(RESET_COLOR)"
 	@if $(RM) $(ASM_OBJ) $(C_OBJ); then printf "%24s" " -> "; echo '$(OK_STRING)'; else  echo '$(ERROR_STRING)'; fi
 	@cd $(PATH_SERVICES) && make -s clean && cd ../
+	@cd $(PATH_REGULAR) && make -s clean && cd ../
 
 fclean: clean
 #	@cd $(PATH_LIBC) && $(MAKE) distclean && rm -f *.a
@@ -137,9 +139,13 @@ install: $(NAME)
 	sudo losetup -d /dev/loop1
 	sudo losetup -d /dev/loop0
 	@cd $(PATH_SERVICES) && make -s install && cd ..
+	@cd $(PATH_REGULAR) && make -s install && cd ..
 
 services: lib
 	@cd $(PATH_SERVICES) && make -s && cd ..
+
+regular: lib
+	@cd $(PATH_REGULAR) && make -s && cd ..
 
 mountdisk:
 	sudo losetup -f build/disk.img

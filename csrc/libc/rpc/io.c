@@ -8,6 +8,7 @@
 
 #include <rpc/io.h>
 #include <rpc/rpc.h>
+#include <unistd.h>
 
 const char *rpc_io_desc[4] =
 {
@@ -16,6 +17,8 @@ const char *rpc_io_desc[4] =
   "c",      // read
   "c",      // read_one
 };
+
+int itoa_base(int n, char *str, unsigned base);
 
 int rpc_write(int color, const char *str, unsigned size)
 {

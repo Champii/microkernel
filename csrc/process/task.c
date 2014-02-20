@@ -93,6 +93,12 @@ void switch_to_user_mode()
 {
    // Set up a stack structure for switching to user mode.
 
+  if (!ready_queue)
+  {
+    printk(COLOR_WHITE, "No process to launch ! Exiting.\n");
+    for (;;);
+  }
+
   set_kernel_stack(ready_queue->kernel_stack + KERNEL_STACK_SIZE);
 
   current_task = ready_queue;
@@ -221,6 +227,7 @@ void switch_task(struct s_regs *regs)
 
   // printk(COLOR_WHITE, "Switch task : cur = ");
   // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
 
   current_task = current_task->next;
 

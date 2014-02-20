@@ -32,7 +32,7 @@ static int                check_elf_magic(unsigned char *to_check)
 }
 
 
-int                       load_elf(u64 pid, void *elf_start, unsigned *stack)
+int                       load_elf(u64 pid, void *elf_start, unsigned *entry, unsigned *stack)
 {
   Elf32_Ehdr *elf;
   Elf32_Phdr *ph;
@@ -42,6 +42,7 @@ int                       load_elf(u64 pid, void *elf_start, unsigned *stack)
   if (check_elf_magic(elf->e_ident) < 0)
     return -1;
 
+  *entry = elf->e_entry;
 
   ph = ((Elf32_Phdr *)(elf_start + elf->e_phoff));
 

@@ -10,23 +10,25 @@
 
 #include                  <string.h>
 #include                  <rpc.h>
+#include                  <get_argument.h>
 
-extern u64                *paging_pid;
-extern u64                *io_pid;
+extern u64                paging_pid;
+extern u64                io_pid;
 
 void                      service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
 {
-  char                    *tmp;
+  char                    tmp[1024];
 
   sender = sender;
 
-  tmp = (char *)(params + sizeof(u32));
+  get_str_arg(&params, tmp);
 
   u64 *res;
+
   if (!strncmp(tmp, "paging", 6))
-    res = paging_pid;
+    res = &paging_pid;
   else if (!strncmp(tmp, "io", 2))
-    res = io_pid;
+    res = &io_pid;
   else
     res = 0;
 

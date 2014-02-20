@@ -28,21 +28,22 @@ unsigned                  start_frame;
 
 int main()
 {
-
+  // kwrite(15, "TEST\n", 0);
   write(COLOR_WHITE, "Starting Paging service\n", 0);
 
-  pd_addr = (unsigned *)(*(stack_start));
+  // pd_addr = (unsigned *)(*stack_start);
   // start_frame = *(stack_start + 3);
 
   // init_mm();
   // start_frame = start_frame;
-  char tmp[15];
+  // char tmp[15];
+  // unsigned *pid_split = (unsigned *)&prog_loader_pid;
 
-  itoa_base((unsigned)pd_addr, tmp, 16);
-  kwrite(COLOR_WHITE, " pd_addr = 0x", 0);
-  kwrite(COLOR_WHITE, tmp, 0);
-  // itoa_base(start_frame, tmp, 16);
-  // kwrite(COLOR_WHITE, "Start frame = ", 0);
+  // itoa_base((unsigned)pd_addr, tmp, 16);
+  // kwrite(COLOR_WHITE, " pd_addr = 0x", 0);
+  // kwrite(COLOR_WHITE, tmp, 0);
+  // itoa_base(pid_split[0], tmp, 16);
+  // kwrite(COLOR_WHITE, " PL PID = ", 0);
   // kwrite(COLOR_WHITE, tmp, 0);
   // kwrite(COLOR_WHITE, "\n", 0);
 
