@@ -32,6 +32,13 @@ typedef struct        s_page
   unsigned            frame      : 20;
 }                     t_page;
 
+typedef struct s_free_block {
+
+  void *block;
+  struct s_free_block *p_next;
+
+} t_free_block;
+
 typedef struct        s_page_table
 {
   t_page              pages[1024];

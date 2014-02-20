@@ -18,6 +18,10 @@
 t_page_directory          *page_dir = 0;
 t_page_directory          *cur_dir=0;
 t_page_table              *page_table = 0;
+t_free_block		  *free_block = 0;
+
+// a changer de place
+
 
 unsigned                  *frames;
 unsigned                  nframes;
@@ -31,7 +35,6 @@ extern void               copy_page_physical(unsigned src, unsigned dest);
 // {
 //   t_mem_block             *tmp;
 //   struct list_head        *pos = &memory->list;
-
 //   list_for_each(pos, &memory->list)
 //   {
 //     printk(COLOR_WHITE, "HEAY");
@@ -159,6 +162,55 @@ unsigned                  first_frame()
 
   return (-1);
 }
+
+// ---- algo first fit ----
+
+//    free_block->block[i^2] = kmalloc((i^2)* sizeof(void*));
+void init_struct_mm_block() {
+  int i = 2;
+  t_free_block* tmp = free_block;
+
+  free_block = kmalloc(sizeof(t_free_block));
+  //memset(free_block, 0, sizeof(t_free_block));
+  
+  while (i < 4096 || tmp->p_next != NULL) {
+      tmp->block = kmalloc(i);  
+      tmp = tmp->p_next;
+      i ^= 2;
+  }
+}
+
+int list_size(void* list) {
+  int i = 0;
+  if (list->p_next != NULL)
+    i++;
+  return i;
+}
+
+int strlen(void* ) {
+  int i = 0;
+  while ()
+}
+
+
+static unsigned first_fit(int q_block_size) {
+  int i = 0;
+  int list_len = list_size(block_size);
+  t_free_block *tmp = free_block;
+
+  while (tmp->p_next != NULL) {
+    if ( sizeof(tmp->block) >= q_block_size)
+      return free_block->block;
+    tmp = tmp->p_next;
+  }
+}
+
+void free_list() {
+  
+    
+}
+
+// ------- end ------
 
 int                       alloc_page(t_page *page, int is_kernel, int is_writeable)
 {
