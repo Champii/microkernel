@@ -62,7 +62,7 @@ int                       check_elf_magic(unsigned char *to_check)
   return (0);
 }
 
-#define PAGING_HEAP_ADDR 0x10000000
+#define PAGING_HEAP_ADDR 0x30000000
 #define PAGING_AS_ADDR 0x20000000
 
 void                      map_services_as_in_paging()
@@ -83,6 +83,29 @@ void                      map_services_as_in_paging()
   int i;
   for (i = PAGING_HEAP_ADDR; i < PAGING_HEAP_ADDR + (1024 * 0x1000); i++)
     alloc_page(get_page(i, 1, paging_dir), 0, 1);
+}
+
+void                      map_regular_in_pl(unsigned count)
+{
+  t_page_directory        *pl_dir = services[0].pd;
+  unsigned i;
+  unsigned j;
+
+  for (i = program_names->mod_start; i < program_names->mod_end; i += 0x1000)
+  {
+    t_page *pl_dir_pnames = get_page(i, 0, page_dir);
+    alloc_page_at(pl_dir_pnames->frame * 0x1000, get_page(i, 1, pl_dir), 0, 1);
+  }
+
+  for (j = 0; j < count - 4; j++)
+  {
+    for (i = programs[j]->mod_start; i < programs[j]->mod_end; i += 0x1000)
+    {
+      t_page *pl_dir_p = get_page(i, 0, page_dir);
+      alloc_page_at(pl_dir_p->frame * 0x1000, get_page(i, 1, pl_dir), 0, 1);
+    }
+  }
+
 }
 
 static void               push_pid_on_stack(unsigned **stack, u64 *pid)
@@ -114,7 +137,7 @@ static void               push_addr_on_stack(unsigned **stack, unsigned addr)
 //   *stack -= 1;
 // }
 
-static void               prepare_stack(t_task *task, t_page_directory *root_pd, void **stack)
+static void               prepare_stack(t_task *task, t_page_directory *root_pd, void **stack, unsigned count)
 {
   unsigned                *ustack = *stack;
 
@@ -124,14 +147,21 @@ static void               prepare_stack(t_task *task, t_page_directory *root_pd,
   // if Program Loader, push all services pid on stack (reverse order)
   if (task->id == 1)
   {
+    unsigned i;
+
+    for (i = 0; i < count; i++)
+      push_addr_on_stack(&ustack, programs[i]->mod_start);
+
+    push_addr_on_stack(&ustack, program_names->mod_end);
+    push_addr_on_stack(&ustack, program_names->mod_start);
     push_pid_on_stack(&ustack, io_pid);
     push_pid_on_stack(&ustack, paging_pid);
   }
   else if (task->id == 2)
   {
-    // printk(COLOR_WHITE, "First frame = ");
-    // printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
-    // printk(COLOR_WHITE, "\n");
+    printk(COLOR_WHITE, "First frame = ");
+    printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
+    printk(COLOR_WHITE, "\n");
     push_addr_on_stack(&ustack, first_frame());
     push_addr_on_stack(&ustack, PAGING_AS_ADDR);
 
@@ -149,15 +179,16 @@ static void               prepare_stack(t_task *task, t_page_directory *root_pd,
   *stack = ustack;
 }
 
-void                      prepare_processes(int count)
+void                      prepare_processes(unsigned count)
 {
   int                     i;
 
   map_services_as_in_paging();
+  map_regular_in_pl(count);
 
   for (i = 0; i < 3; i++)
   {
-    prepare_stack(services[i].task, services[i].pd, &services[i].stack);
+    prepare_stack(services[i].task, services[i].pd, &services[i].stack, count);
     run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
     // printk(COLOR_WHITE, "Process stack : 0x");
     // printk(COLOR_WHITE, my_putnbr_base(services[i].stack, "0123456789ABCDEF"));
@@ -165,12 +196,12 @@ void                      prepare_processes(int count)
   }
 }
 
-void                      init_services(int count, struct s_multiboot_module *module)
+void                      init_services(unsigned count, struct s_multiboot_module *module)
 {
   int                     i;
 
   printk(COLOR_WHITE, "Modules found = ");
-  printk(COLOR_WHITE, my_putnbr_base(count, "01234564789"));
+  printk(COLOR_WHITE, my_putnbr_base(count, "0123456789"));
   printk(COLOR_WHITE, "\n");
 
   for (i = 0; i < count; i++)
@@ -205,7 +236,7 @@ void                      init_services(int count, struct s_multiboot_module *mo
 
     create_process(task);
 
-    // if process loader
+    // save pid to push on stack of services
     if (i == 0)
       pl_pid = task;
     else if (i == 1)
@@ -240,6 +271,9 @@ void                      init_services(int count, struct s_multiboot_module *mo
       {
         memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
         new_stack = (unsigned *)(ph->p_vaddr + ph->p_memsz);
+        printk(COLOR_WHITE, "Stack start = 0x");
+        printk(COLOR_WHITE, my_putnbr_base(ph->p_vaddr + ph->p_memsz, "0123456789ABCDEF"));
+        printk(COLOR_WHITE, "\n");
       }
       switch_page_directory(cur_dir);
 

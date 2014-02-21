@@ -9,6 +9,8 @@
 ************************************************/
 
 #include                  <string.h>
+#include                  <sys/sys_types.h>
+#include                  <unistd.h>
 #include                  <mm.h>
 
 /*
@@ -20,7 +22,7 @@
 unsigned                  *frames;
 unsigned                  nframes;
 
-extern unsigned           *pd_addr;
+extern unsigned           pd_addr;
 
 extern unsigned           start_frame;
 
@@ -28,7 +30,7 @@ t_page_directory          *processes_pd = (t_page_directory *)0x20000000;
 
 t_page_directory          *paging_pd;
 
-unsigned                  temp_heap = 0x10000000;
+unsigned                  temp_heap = 0x30000000;
 
 static void               *_kmalloc(unsigned size, int align, unsigned *phys)
 {
@@ -207,20 +209,33 @@ t_page_directory          *get_as_from_pid(unsigned pid)
   return processes_pd + ((pid - 1) * 0x1000);
 }
 
+int uitoa_base(unsigned n, char *str, unsigned base);
+
 void                      init_page_dir()
 {
-  unsigned                mem_end_page = 0xFFFFFF;
+  // unsigned                mem_end_page = 0xFFFFFF;
 
+  // processes_pd = (t_page_directory *)pd_addr;
 
   paging_pd = processes_pd + 1;
 
-  nframes = mem_end_page / 0x1000;
-  frames = kmalloc(INDEX_FROM_BIT(nframes));
-  memset(frames, 0, INDEX_FROM_BIT(nframes));
+  // mem_end_page = mem_end_page;
+  // nframes = 0xFFFFFF / 0x1000;
+  frames = kmalloc(INDEX_FROM_BIT(0xFFFFFF / 0x1000));
+  memset(frames, 0, INDEX_FROM_BIT(0xFFFFFF / 0x1000));
 
+  // char tmp[10];
+  // memset(tmp, 0, 10);
+
+  // uitoa_base((unsigned)start_frame, tmp, 16);
+  // kwrite(15, "lol ", 0);
+  // kwrite(15, tmp, 0);
   unsigned i;
   for (i = 0; i < start_frame; i++)
+  {
     set_frame(i * 0x1000);
+  }
+  // kwrite(15, "lol2", 0);
 }
 
 void                      init_mm()

@@ -13,6 +13,13 @@
 
 # include                 <sys/sys_types.h>
 
+struct                    s_program
+{
+  char                    name[32];
+  unsigned                *elf_addr;
+};
+
+
 // RPC Handlers
 void                      exec_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
 void                      exit_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);

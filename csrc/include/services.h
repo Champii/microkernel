@@ -13,6 +13,6 @@
 
 #include                  "multiboot.h"
 
-void                      init_services(int count, struct s_multiboot_module *module);
+void                      init_services(unsigned count, struct s_multiboot_module *module);
 
 #endif                    /*__SERVICES_H__*/

@@ -131,6 +131,7 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
   size_t params_len = strlen(func_desc);
   int sys_ret;
 
+  kwrite(15, "Hello !\n", 0);
   if (params_len < 1)
     return -EINVAL;
 

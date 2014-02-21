@@ -163,54 +163,54 @@ unsigned                  first_frame()
   return (-1);
 }
 
-// ---- algo first fit ----
+// // ---- algo first fit ----
 
-//    free_block->block[i^2] = kmalloc((i^2)* sizeof(void*));
-void init_struct_mm_block() {
-  int i = 2;
-  t_free_block* tmp = free_block;
+// //    free_block->block[i^2] = kmalloc((i^2)* sizeof(void*));
+// void init_struct_mm_block() {
+//   int i = 2;
+//   t_free_block* tmp = free_block;
 
-  free_block = kmalloc(sizeof(t_free_block));
-  //memset(free_block, 0, sizeof(t_free_block));
-  
-  while (i < 4096 || tmp->p_next != NULL) {
-      tmp->block = kmalloc(i);  
-      tmp = tmp->p_next;
-      i ^= 2;
-  }
-}
+//   free_block = kmalloc(sizeof(t_free_block));
+//   //memset(free_block, 0, sizeof(t_free_block));
 
-int list_size(void* list) {
-  int i = 0;
-  if (list->p_next != NULL)
-    i++;
-  return i;
-}
+//   while (i < 4096 || tmp->p_next != NULL) {
+//       tmp->block = kmalloc(i);
+//       tmp = tmp->p_next;
+//       i ^= 2;
+//   }
+// }
 
-int strlen(void* ) {
-  int i = 0;
-  while ()
-}
+// int list_size(void* list) {
+//   int i = 0;
+//   if (list->p_next != NULL)
+//     i++;
+//   return i;
+// }
+
+// int strlen(void* ) {
+//   int i = 0;
+//   while ()
+// }
 
 
-static unsigned first_fit(int q_block_size) {
-  int i = 0;
-  int list_len = list_size(block_size);
-  t_free_block *tmp = free_block;
+// static unsigned first_fit(int q_block_size) {
+//   int i = 0;
+//   int list_len = list_size(block_size);
+//   t_free_block *tmp = free_block;
 
-  while (tmp->p_next != NULL) {
-    if ( sizeof(tmp->block) >= q_block_size)
-      return free_block->block;
-    tmp = tmp->p_next;
-  }
-}
+//   while (tmp->p_next != NULL) {
+//     if ( sizeof(tmp->block) >= q_block_size)
+//       return free_block->block;
+//     tmp = tmp->p_next;
+//   }
+// }
 
-void free_list() {
-  
-    
-}
+// void free_list() {
 
-// ------- end ------
+
+// }
+
+// // ------- end ------
 
 int                       alloc_page(t_page *page, int is_kernel, int is_writeable)
 {

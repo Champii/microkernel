@@ -13,7 +13,7 @@
 #include                  <mm.h>
 #include                  <get_argument.h>
 
-unsigned pl_map_start = 0x10000000;
+unsigned pl_map_start = 0x30000000;
 
 void                      _mmap_sys_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
 {

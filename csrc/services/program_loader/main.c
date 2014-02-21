@@ -12,6 +12,7 @@
 #include                  <unistd.h>
 #include                  <string.h>
 #include                  <errno.h>
+#include                  <stdlib.h>
 #include                  <rpc/paging.h>
 
 #include                  <rpc.h>
@@ -21,12 +22,24 @@ extern unsigned           *stack_start;
 extern u64                paging_pid;
 extern u64                io_pid;
 
-int uitoa_base(unsigned n, char *str, unsigned size);
+struct s_program          programs[32];
 
-void                      get_services_pid()
+unsigned                  nb_progs = 0;
+
+unsigned                  program_names_addr_start;
+unsigned                  program_names_addr_end;
+
+int                       uitoa_base(unsigned n, char *str, unsigned size);
+
+
+void                      get_stack_args()
 {
   paging_pid = *(u64 *)stack_start;
   io_pid = *((u64 *)stack_start + 1);
+
+
+  program_names_addr_start = *(stack_start + 4);
+  program_names_addr_end = *(stack_start + 5);
 
   // char tmp[10];
   // unsigned *pid_split = (unsigned *)&paging_pid;
@@ -44,11 +57,61 @@ void                      get_services_pid()
   // paging_pid = (u64 *)(stack_start + 2);
 }
 
+int                       prepare_programs()
+{
+  unsigned                i;
+  int                     j = 0;
+
+  for (i = program_names_addr_start; i < program_names_addr_end; i++)
+  {
+    if (*(char *)i != '\n')
+      programs[nb_progs].name[j++] = *(char *)i;
+    else
+    {
+      kwrite(15, "FOUND NAME = ", 0);
+      kwrite(15, programs[nb_progs].name, 0);
+      kwrite(15, "\n", 0);
+      programs[nb_progs].name[j++] = 0;
+      nb_progs++;
+      j = 0;
+    }
+  }
+
+  for (i = 0; i < nb_progs; i++)
+    programs[i].elf_addr = (unsigned *)*(stack_start + i + 5);
+
+  return 0;
+}
+
+int                       launch_first()
+{
+  char                    tmp[64];
+  unsigned                size;
+  void                    *ret;
+  unsigned                ret_size;
+
+  size = strlen(programs[0].name);
+  memcpy(tmp, (void *)&size, sizeof(unsigned));
+  memcpy(tmp + sizeof(unsigned), programs[0].name, size);
+
+  *(tmp + sizeof(unsigned) + size) = 0;
+
+  exec_rpc(prog_loader_pid, tmp, &ret, &ret_size);
+
+  return 0;
+}
+
 int                       main()
 {
-  // kwrite(15, "TEST\n", 0);
-  get_services_pid();
+  int                     ret;
 
+  get_stack_args();
+
+  if ((ret = prepare_programs()) < 0)
+    print_error(ret);
+
+  if ((ret = launch_first()) < 0)
+    print_error(ret);
 
   register_listen_rpcs();
 

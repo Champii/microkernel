@@ -9,6 +9,7 @@
 #include <rpc/rpc.h>
 #include <stdlib.h>
 #include                  <unistd.h>
+#include                  <string.h>
 
 int uitoa_base(unsigned n, char *str, unsigned size);
 
@@ -20,13 +21,15 @@ unsigned *stack_start = 0;
 
 void _start(unsigned *stack)
 {
-  // char tmp[10];
+
 
   prog_loader_pid = *((u64 *)stack);
   stack_start = stack + 2;
+  // char tmp[10];
+  // memset(tmp, 0, 10);
 
   // unsigned *pid_split = (unsigned *)&prog_loader_pid;
-  // uitoa_base(pid_split[0], tmp, 16);
+  // uitoa_base(pid_split[1], tmp, 10);
 
   // kwrite(15, "PL pid = ", 0);
   // kwrite(15, tmp, 0);
