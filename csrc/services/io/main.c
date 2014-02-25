@@ -34,7 +34,7 @@ void                      welcome_screen()
 int                       main()
 {
 
-  welcome_screen();
+  // welcome_screen();
 
   printk(COLOR_WHITE, "Starting IO service\n");
 

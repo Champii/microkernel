@@ -33,22 +33,14 @@ void                      _create_as_rpc(u64 sender, void *params, void **ret, u
   ret = ret;
   ret_size = ret_size;
 
-  kwrite(15, "Create as !\n", 0);
-
-
   u64 new_pid = get_u64_arg(&params);
   unsigned *pid_split = (unsigned *)&new_pid;
 
   t_page_directory *new_pd = get_as_from_pid(pid_split[0]);
   memset(new_pd, 0, sizeof(*new_pd));
+  // new_pd = new_pd;
 
   *ret = 0;
   *ret_size = 4;
-
-
-  // kwrite(15, );
-
-
-
 
 }

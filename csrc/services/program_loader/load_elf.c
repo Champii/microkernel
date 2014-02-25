@@ -13,6 +13,11 @@
 #include                  <elf.h>
 #include                  <errno.h>
 #include                  <string.h>
+#include                  <unistd.h>
+#include                  <sys/syscall.h>
+
+int itoa_base(int n, char *str, unsigned base);
+int uitoa_base(unsigned n, char *str, unsigned base);
 
 static int                check_elf_magic(unsigned char *to_check)
 {
@@ -23,7 +28,7 @@ static int                check_elf_magic(unsigned char *to_check)
   {
     if (to_check[i] != magic[i])
     {
-      // printk(COLOR_RED, "MAGIC DON'T MATCH ELF, SKIPPING MODULE\n");
+      kwrite(4, "MAGIC DON'T MATCH ELF, SKIPPING MODULE\n", 0);
       return (-1);
     }
     i++;
@@ -36,14 +41,19 @@ int                       load_elf(u64 pid, void *elf_start, unsigned *entry, un
 {
   Elf32_Ehdr *elf;
   Elf32_Phdr *ph;
+  // char tmp[10];
 
   elf = (Elf32_Ehdr *)elf_start;
 
   if (check_elf_magic(elf->e_ident) < 0)
-    return -1;
+    return -EINVAL;
 
   *entry = elf->e_entry;
 
+  // itoa_base(*entry, tmp, 16);
+  // kwrite(4, "Entry point = 0x", 0);
+  // kwrite(4, tmp, 0);
+  // kwrite(4, "\n", 0);
   ph = ((Elf32_Phdr *)(elf_start + elf->e_phoff));
 
   int j;
@@ -57,11 +67,20 @@ int                       load_elf(u64 pid, void *elf_start, unsigned *entry, un
     }
 
     int k = (ph->p_vaddr / 0x1000) * 0x1000;
+    // kwrite(4, "GOOD MAGIC\n", 0);
     if ((int)(void_ret = rpc_mmap_sys(pid, (void *)k, 0, ph->p_memsz)) < 0)
     {
+      // itoa_base((int)void_ret, tmp, 10);
+      // kwrite(4, "MMAP RET = ", 0);
+      // kwrite(4, tmp, 0);
+      // kwrite(4, "\n", 0);
+      // kwrite(4, "ERROR mmap ", 0);
       print_error((int)void_ret);
-      return -1;
+      return (int)void_ret;
     }
+
+    kwrite(15, "LOAD END\n", 0);
+    sys_invlpg((void *)((unsigned)void_ret / 0x1000));
 
     memcpy(void_ret + (ph->p_vaddr % 0x1000), (void *)(elf_start + ph->p_offset), ph->p_filesz);
     if (ph->p_filesz != ph->p_memsz)

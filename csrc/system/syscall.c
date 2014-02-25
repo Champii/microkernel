@@ -13,6 +13,7 @@
 #include                  "isrs.h"
 #include                  "idt.h"
 #include                  "ipc.h"
+#include                  "mm.h"
 #include                  "screen.h"
 
 //test
@@ -33,7 +34,7 @@ static void               *syscalls[9] =
   &sleep,                 // sleep
   &send,                  // send
   &recv,                  // recv
-  0,                      //invlpg
+  &invlpg,                      //invlpg
   &printk                 //TEMP write
 };
 

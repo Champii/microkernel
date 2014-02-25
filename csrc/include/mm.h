@@ -61,6 +61,7 @@ int                   alloc_page(t_page *page, int is_kernel, int is_writeable);
 void                  alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable);
 t_page_directory      *clone_directory(t_page_directory *src);
 void                  switch_page_directory(t_page_directory *new_dir);
+void                  invlpg(void *vaddr);
 /*LOOK stos (asm) => page table*/
 
 #endif                /*__MM_H__*/

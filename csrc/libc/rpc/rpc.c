@@ -25,7 +25,8 @@ u64 io_pid = 0;
 static struct rpc *reg_rpcs = 0;
 static unsigned reg_rpcs_num = 0;
 
-unsigned itoa_base(unsigned n, char *s, int base);
+unsigned itoa_base(int n, char *s, int base);
+unsigned uitoa_base(unsigned n, char *s, int base);
 
 static int check_param_ret(char param_ret, void *ret)
 {
@@ -62,6 +63,7 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
     void *ret, u32 ret_size, char *msg_buff)
 {
   int sys_ret;
+  // char tmp[10];
 
   if (param_ret != 'v')
   {
@@ -90,7 +92,6 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
       memcpy(ret, &msg_buff[sizeof(u32)], copy_size);
       return copy_size;
     }
-
     switch (param_ret)
     {
       case 'i':
@@ -98,6 +99,10 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
           return -EBADMSG;
 
         *((u32 *) ret) = *((u32 *) &msg_buff[sizeof(u32)]);
+        // itoa_base(*(u32 *) msg_buff, tmp, 10);
+        // kwrite(15, "MMAP SYS ret = ", 0);
+        // kwrite(15, tmp, 0);
+        // kwrite(15, "\n", 0);
         break;
 
       case 'I':
@@ -131,10 +136,11 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
   size_t params_len = strlen(func_desc);
   int sys_ret;
 
-  kwrite(15, "Hello !\n", 0);
+  // kwrite(15, "Hello Call RPC!\n", 0);
   if (params_len < 1)
     return -EINVAL;
 
+  // kwrite(15, "Hello !\n", 0);
   sys_ret = check_param_ret(func_desc[0], ret);
   if (sys_ret < 0)
     return sys_ret;
@@ -303,6 +309,7 @@ int listen_rpc(void)
   int msg_size;
   void *ret;
   u32 ret_size;
+  // char tmp[10];
 
   if (!reg_rpcs)
     return 0;
@@ -311,7 +318,16 @@ int listen_rpc(void)
   {
     // kwrite(COLOR_WHITE, "Test\n", 0);
       // kwrite(COLOR_WHITE, "TEST\n", 0);
+    // kwrite(15, "Recv listen_rpc RPC!\n", 0);
+
     sys_ret = recv(RCV_ANYONE, msg_buff, MSG_MAXSIZE, &sender);
+
+
+  //   char tmp[10];
+  //   uitoa_base(*(unsigned *)msg_buff,  tmp, 10);
+  // kwrite(COLOR_WHITE, "Listen func id = ", 0);
+  // kwrite(COLOR_WHITE, tmp, 0);
+  // kwrite(COLOR_WHITE, "\n", 0);
       // kwrite(COLOR_WHITE, "TEST2\n", 0);
     // kwrite(COLOR_WHITE, "Hello\n", 0);
 
@@ -333,12 +349,6 @@ int listen_rpc(void)
       return sys_ret;
     // kwrite(COLOR_WHITE, "Hello!\n", 0);
 
-    // char tmp[10];
-    // itoa_base(msg_size, tmp, 10);
-  // kwrite(COLOR_WHITE, tmp, 0);
-  // kwrite(COLOR_WHITE, " str = ", 0);
-  // kwrite(COLOR_WHITE, str, 0);
-  // kwrite(COLOR_WHITE, "\n", 0);
 
     if (check_restrict_rpc(*func_id, sender) < 0)
       return -EPERM;
@@ -356,11 +366,17 @@ int listen_rpc(void)
         return -EMSGSIZE;
 
 
-      memcpy(&msg_buff[sizeof(u32)], ret, ret_size);
+      memcpy(&msg_buff[sizeof(u32)], &ret, ret_size);
       // free(ret);
+
+      // uitoa_base((unsigned)ret, tmp, 16);
+      // uitoa_base(*(unsigned*)&msg_buff[sizeof(u32)], tmp, 16);
+      // kwrite(COLOR_WHITE, tmp, 0);
+      // kwrite(COLOR_WHITE, " \n", 0);
 
       sys_ret = send(sender, msg_buff, ret_size + sizeof(u32));
 
+      // kwrite(COLOR_WHITE, "Lolilol", 0);
       if (sys_ret < 0)
         return sys_ret;
     }

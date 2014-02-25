@@ -41,19 +41,19 @@ void                      register_listen_rpcs()
   rpcs[5].func_desc = rpc_paging_desc[5];
   rpcs[5].handler = &_mmap_sys_rpc;
 
-  restrict_rpc(3, prog_loader_pid);
-  restrict_rpc(4, prog_loader_pid);
-  restrict_rpc(5, prog_loader_pid);
+  // restrict_rpc(3, prog_loader_pid);
+  // restrict_rpc(4, prog_loader_pid);
+  // restrict_rpc(5, prog_loader_pid);
 
   int ret;
-  if ((ret = register_rpc(rpcs, 4)) < 0)
+  if ((ret = register_rpc(rpcs, 6)) < 0)
   {
     kwrite(COLOR_WHITE, "PAGING: Error Register RPC\n", 0);
     print_error(ret);
   }
 
 
-  write(COLOR_WHITE, "Paging service listening...\n", 0);
+  // write(COLOR_WHITE, "Paging service listening...\n", 0);
   if ((ret = listen_rpc()) < 0)
   {
     kwrite(COLOR_WHITE, "PAGING: Error Listen rpc RPC\n", 0);

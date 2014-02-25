@@ -62,6 +62,7 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
   // printk(COLOR_WHITE, "Pid queued: ");
   // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
   // printk(COLOR_WHITE, "\n");
+
   if (!task)
   {
     printk(COLOR_RED, "ERROR QUEUE MESS : TASK = 0\n");
@@ -164,10 +165,11 @@ int                       recv(u64 pid, void *pool, unsigned pool_size)
   current_task->mess_queue = current_task->mess_queue->next;
 
   // switch_page_directory(current_task->page_directory);
-  // unsigned                *pid_split = (unsigned *)(((char *)pool) + 4);
+  unsigned                *pid_split = (unsigned *)(((char *)pool) + 4);
 
   // printk(COLOR_WHITE, "RECV : 0x");
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
+  // // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
   // printk(COLOR_WHITE, " msg = 0x");
   // printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
   // printk(COLOR_WHITE, " size = ");

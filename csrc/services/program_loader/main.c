@@ -30,6 +30,7 @@ unsigned                  program_names_addr_start;
 unsigned                  program_names_addr_end;
 
 int                       uitoa_base(unsigned n, char *str, unsigned size);
+int                       itoa_base(int n, char *str, unsigned size);
 
 
 void                      get_stack_args()
@@ -78,7 +79,15 @@ int                       prepare_programs()
   }
 
   for (i = 0; i < nb_progs; i++)
-    programs[i].elf_addr = (unsigned *)*(stack_start + i + 5);
+  {
+    char tmp[10];
+
+    programs[i].elf_addr = (unsigned *)*(stack_start + i + 6);
+    uitoa_base((unsigned)programs[i].elf_addr, tmp, 16);
+    kwrite(15, "Program addr = 0x", 0);
+    kwrite(15, tmp, 0);
+    kwrite(15, "\n", 0);
+  }
 
   return 0;
 }

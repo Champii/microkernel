@@ -67,6 +67,7 @@ int                       check_elf_magic(unsigned char *to_check)
 
 void                      map_services_as_in_paging()
 {
+  unsigned                pd_size = sizeof(t_page_directory);
   t_page_directory        *pl_dir = services[0].pd;
   t_page_directory        *paging_dir = services[1].pd;
   t_page_directory        *io_dir = services[2].pd;
@@ -76,14 +77,25 @@ void                      map_services_as_in_paging()
   t_page *io_dir_virt = get_page((unsigned)io_dir, 0, page_dir);
 
   alloc_page_at(pl_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR, 1, paging_dir), 0, 1);
-  alloc_page_at(paging_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
-  alloc_page_at(io_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + 0x2000, 1, paging_dir), 0, 1);
+  alloc_page_at((pl_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
+
+  alloc_page_at(paging_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + pd_size, 1, paging_dir), 0, 1);
+  alloc_page_at((paging_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + pd_size + 0x1000, 1, paging_dir), 0, 1);
+
+  alloc_page_at(io_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + (2 * pd_size), 1, paging_dir), 0, 1);
+  alloc_page_at((io_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + (2 * pd_size) + 0x1000, 1, paging_dir), 0, 1);
+
+
+  int i;
+  for (i = PAGING_AS_ADDR + (2 * pd_size); i < PAGING_AS_ADDR + (32 * pd_size); i += 0x1000)
+    alloc_page(get_page(i, 1, paging_dir), 0, 1);
 
   // alloc page for temp heap
-  int i;
   for (i = PAGING_HEAP_ADDR; i < PAGING_HEAP_ADDR + (1024 * 0x1000); i++)
     alloc_page(get_page(i, 1, paging_dir), 0, 1);
 }
+
+// #define PL_MAP_ADDR 0x30000000
 
 void                      map_regular_in_pl(unsigned count)
 {
@@ -99,6 +111,13 @@ void                      map_regular_in_pl(unsigned count)
 
   for (j = 0; j < count - 4; j++)
   {
+    printk(COLOR_WHITE, "Mapped regular prog = ");
+    printk(COLOR_WHITE, my_putnbr_base(programs[j]->mod_start, "0123456789ABCDEF"));
+    printk(COLOR_WHITE, "\n");
+
+    if (check_elf_magic(programs[j]->mod_start) < 0)
+      printk(COLOR_RED, "ERROR REGULAR PROGRAM ELF\n");
+
     for (i = programs[j]->mod_start; i < programs[j]->mod_end; i += 0x1000)
     {
       t_page *pl_dir_p = get_page(i, 0, page_dir);
@@ -149,7 +168,7 @@ static void               prepare_stack(t_task *task, t_page_directory *root_pd,
   {
     unsigned i;
 
-    for (i = 0; i < count; i++)
+    for (i = 0; i < count - 4; i++)
       push_addr_on_stack(&ustack, programs[i]->mod_start);
 
     push_addr_on_stack(&ustack, program_names->mod_end);

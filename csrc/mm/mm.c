@@ -391,8 +391,10 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, " PID = ");
   printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789"));
   printk(COLOR_WHITE, "\n");
-  printk(COLOR_WHITE, "Page fault");
+  printk(COLOR_WHITE, "Page fault\n");
 
+  printk(COLOR_WHITE, "Page dir page : ");
+  printk(COLOR_WHITE, my_putnbr_base(get_page(faulting_address, 0, cur_dir), "0123456789ABCDEF"));
   for(;;);
 }
 
@@ -400,6 +402,18 @@ void                      switch_page_directory(t_page_directory *new_dir)
 {
 
   __asm__ volatile("mov %0, %%cr3":: "b"(new_dir->physicalAddr));
+}
+
+void                      invlpg(void *vaddr)
+{
+  // unsigned addr;
+  // __asm__ volatile("mov %%cr3, %0": "+b"(addr));
+  // __asm__ volatile("mov %0, %%cr3":: "b"(addr));
+
+  __asm__ volatile("invlpg (%0)":: "r"(vaddr) : "memory");
+  printk(COLOR_WHITE, "INVLPG frame = ");
+  printk(COLOR_WHITE, my_putnbr_base(get_page((unsigned)vaddr * 0x1000, 0, cur_dir), "0123456789ABCDEF"));
+  printk(COLOR_WHITE, "\n");
 }
 
 void                      init_page_dir()

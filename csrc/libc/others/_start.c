@@ -11,11 +11,9 @@
 #include                  <unistd.h>
 #include                  <string.h>
 
-int uitoa_base(unsigned n, char *str, unsigned size);
-
-
 extern int main(void);
-// extern u64 prog_loader_pid;
+
+int uitoa_base(unsigned n, char *str, unsigned size);
 
 unsigned *stack_start = 0;
 

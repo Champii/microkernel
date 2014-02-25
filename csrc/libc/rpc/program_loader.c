@@ -8,6 +8,7 @@
 
 #include <rpc/program_loader.h>
 #include <rpc/rpc.h>
+#include <unistd.h>
 
 const char *rpc_pl_desc[4] =
 {

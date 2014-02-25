@@ -19,12 +19,13 @@
 *   0x20000000 -> services/programs page directory
 */
 
-unsigned                  *frames;
-unsigned                  nframes;
-
 extern unsigned           pd_addr;
 
 extern unsigned           start_frame;
+
+unsigned                  *frames;
+unsigned                  nframes;
+
 
 t_page_directory          *processes_pd = (t_page_directory *)0x20000000;
 
@@ -128,7 +129,7 @@ static unsigned          first_frame()
 {
   unsigned               i, j;
 
-  for (i = 0; i < INDEX_FROM_BIT(nframes); i++)
+  for (i = 0; i < INDEX_FROM_BIT(0xFFFFFF / 0x1000); i++)
   {
     if (frames[i] != 0xFFFFFFFF)
     {
@@ -154,7 +155,7 @@ int                       alloc_page(t_page *page, int is_kernel, int is_writeab
 
   if (idx == (unsigned)-1)
   {
-    // printk(COLOR_RED, "No free frames!");
+    kwrite(4, "No free frames!", 0);
     for (;;);
   }
 
@@ -170,16 +171,11 @@ int                       alloc_page(t_page *page, int is_kernel, int is_writeab
 
 void                      alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable)
 {
-  if (page->frame != 0)
-    return ;
-  else
-  {
-    set_frame(phys);
-    page->present = 1;
-    page->rw = (is_writeable)?1:0;
-    page->user = (is_kernel)?0:1;
-    page->frame = phys / 0x1000;
-  }
+  set_frame(phys);
+  page->present = 1;
+  page->rw = (is_writeable)?1:0;
+  page->user = (is_kernel)?0:1;
+  page->frame = phys / 0x1000;
 }
 
 
@@ -206,7 +202,7 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
 
 t_page_directory          *get_as_from_pid(unsigned pid)
 {
-  return processes_pd + ((pid - 1) * 0x1000);
+  return processes_pd + (pid - 1);
 }
 
 int uitoa_base(unsigned n, char *str, unsigned base);
@@ -227,7 +223,7 @@ void                      init_page_dir()
   // char tmp[10];
   // memset(tmp, 0, 10);
 
-  // uitoa_base((unsigned)start_frame, tmp, 16);
+  // uitoa_base((unsigned)start_frame, tmp, 10);
   // kwrite(15, "lol ", 0);
   // kwrite(15, tmp, 0);
   unsigned i;
@@ -235,6 +231,7 @@ void                      init_page_dir()
   {
     set_frame(i * 0x1000);
   }
+
   // kwrite(15, "lol2", 0);
 }
 

@@ -20,9 +20,9 @@
 
 #define                   COLOR_WHITE 15
 
-int itoa_base(int n, char *str, unsigned size);
-
 extern unsigned           *stack_start;
+
+int itoa_base(int n, char *str, unsigned size);
 
 unsigned                  pd_addr;
 unsigned                  start_frame;
@@ -38,8 +38,7 @@ int main()
   get_stack_args();
 
   // kwrite(15, "TEST\n", 0);
-  write(COLOR_WHITE, "Starting Paging service\n", 0);
-
+  kwrite(COLOR_WHITE, "Starting Paging service\n", 0);
 
   init_mm();
   // start_frame = start_frame;
