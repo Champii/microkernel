@@ -1,6 +1,6 @@
 /*
  * File: rpc/io.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: RPC IO functions for EPITECH K II
  *

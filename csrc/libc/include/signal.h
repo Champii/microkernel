@@ -1,6 +1,6 @@
 /*
  * File: signal.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: Unix signal function adapted to EPITECH K II
  *

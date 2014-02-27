@@ -12,12 +12,13 @@
 #include                  <mm.h>
 #include                  <get_argument.h>
 
-void                      mmap_phys_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
+void                      mmap_phys_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size)
 {
   sender = sender;
   params = params;
   ret = ret;
   ret_size = ret_size;
+  param_size = param_size;
 
   unsigned vaddr = get_unsigned_arg(&params);
   unsigned paddr = get_unsigned_arg(&params);
@@ -38,7 +39,7 @@ void                      mmap_phys_rpc(u64 sender, void *params, void **ret, un
 
     if (!page || test_frame(paddr + i))
     {
-      *ret = 0;
+      *((unsigned *)ret) = 0;
       *ret_size = sizeof(unsigned);
       return ;
     }
@@ -48,6 +49,6 @@ void                      mmap_phys_rpc(u64 sender, void *params, void **ret, un
   }
 
   // return pointer
-  *ret = (void *)vaddr;
+  *(unsigned *)ret = vaddr;
   *ret_size = sizeof(unsigned);
 }

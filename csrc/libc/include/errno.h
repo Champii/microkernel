@@ -1,6 +1,6 @@
 /*
  * File: errno.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: Unix errors adapted to EPITECH K II
  *
@@ -18,6 +18,5 @@
 #define EMSGSIZE  7  /* Message too long */
 
 void print_error(int ret);
-
 
 #endif /* !ERRNO_H_ */

@@ -1,6 +1,6 @@
 /*
  * File: kill.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: kill function
  *

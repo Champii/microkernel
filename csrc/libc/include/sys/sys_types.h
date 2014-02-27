@@ -1,6 +1,6 @@
 /*
  * File: sys/sys_types.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: basic system types
  *
@@ -22,10 +22,17 @@ typedef unsigned int le32;
 typedef unsigned int be32;
 typedef int i32;
 
+#if __x86_64__
+typedef unsigned long u64;
+typedef unsigned long le64;
+typedef unsigned long be64;
+typedef long i64;
+#else
 typedef unsigned long long u64;
 typedef unsigned long long le64;
 typedef unsigned long long be64;
 typedef long long i64;
+#endif
 
 typedef u16 uint16_t;
 typedef i16 int16_t;

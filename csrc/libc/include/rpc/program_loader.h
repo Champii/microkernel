@@ -1,6 +1,6 @@
 /*
  * File: rpc/program_loader.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: RPC paging functions for EPITECH K II
  *

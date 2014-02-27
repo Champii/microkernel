@@ -105,7 +105,7 @@ int                       launch_first()
 
   *(tmp + sizeof(unsigned) + size) = 0;
 
-  exec_rpc(prog_loader_pid, tmp, &ret, &ret_size);
+  exec_rpc(prog_loader_pid, tmp, 0, &ret, &ret_size);
 
   return 0;
 }

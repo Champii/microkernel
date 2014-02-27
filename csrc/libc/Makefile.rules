@@ -1,0 +1,15 @@
+CC	= gcc
+AS	= as
+AR	= ar
+LD 	= ld
+
+
+CFLAGS  = -nostdlib -Wall -Wextra -Werror -nostdinc -fno-builtin -std=c11\
+          -fno-stack-protector -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-3dnow
+CFLAGS_32 = -m32
+CFLAGS_DEBUG = -g
+CFLAGS_RELEASE = -O2
+
+
+ASFLAGS =
+LDFLAGS	= -nostdlib -nodefaultlib

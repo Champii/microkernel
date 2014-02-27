@@ -1,6 +1,6 @@
 /*
  * File: rpc.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: RPC system
  *
@@ -13,20 +13,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <unistd.h>
-#include <restrict_rpc.h>
-
-#define COLOR_WHITE 15
 
 u64 prog_loader_pid;
 u64 paging_pid = 0;
 u64 io_pid = 0;
 
-static struct rpc *reg_rpcs = 0;
-static unsigned reg_rpcs_num = 0;
-
-unsigned itoa_base(int n, char *s, int base);
-unsigned uitoa_base(unsigned n, char *s, int base);
+static struct
+{
+  handler_rpc *callbacks;
+  const char **func_descs;
+  unsigned num;
+}
+reg_rpcs =
+{
+  0, 0, 0
+};
 
 static int check_param_ret(char param_ret, void *ret)
 {
@@ -63,17 +64,15 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
     void *ret, u32 ret_size, char *msg_buff)
 {
   int sys_ret;
-  // char tmp[10];
 
   if (param_ret != 'v')
   {
-    sys_ret = recv(pid, msg_buff, MSG_MAXSIZE, NULL);
+    sys_ret = recv(pid, (void *) msg_buff, MSG_MAXBUFF, NULL);
     if (sys_ret < 0)
       return sys_ret;
 
     if (sys_ret < (int) sizeof(u32))
       return -EBADMSG;
-
 
     if (*((u32 *) msg_buff) != function_id)
       return -EBADMSG;
@@ -92,6 +91,7 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
       memcpy(ret, &msg_buff[sizeof(u32)], copy_size);
       return copy_size;
     }
+
     switch (param_ret)
     {
       case 'i':
@@ -99,18 +99,13 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
           return -EBADMSG;
 
         *((u32 *) ret) = *((u32 *) &msg_buff[sizeof(u32)]);
-        // itoa_base(*(u32 *) msg_buff, tmp, 10);
-        // kwrite(15, "MMAP SYS ret = ", 0);
-        // kwrite(15, tmp, 0);
-        // kwrite(15, "\n", 0);
         break;
 
       case 'I':
         if (sys_ret != sizeof(u32) + sizeof(u64))
           return -EBADMSG;
 
-        memcpy(ret, &msg_buff[sizeof(u32)], sizeof(u64));
-        // *((u64 *) ret) = *((u64 *) &msg_buff[sizeof(u32)]);
+        *((u64 *) ret) = *((u64 *) &msg_buff[sizeof(u32)]);
         break;
 
       case 'c':
@@ -128,7 +123,7 @@ static int call_rpc_get_ret(u64 pid, u32 function_id, char param_ret,
 int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
     u32 ret_size, ...)
 {
-  static char msg_buff[MSG_MAXSIZE];
+  static char msg_buff[MSG_MAXBUFF];
   u32 msg_size = sizeof(u32);
   char *cur = (char *) &msg_buff;
   va_list args;
@@ -136,11 +131,9 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
   size_t params_len = strlen(func_desc);
   int sys_ret;
 
-  // kwrite(15, "Hello Call RPC!\n", 0);
   if (params_len < 1)
     return -EINVAL;
 
-  // kwrite(15, "Hello !\n", 0);
   sys_ret = check_param_ret(func_desc[0], ret);
   if (sys_ret < 0)
     return sys_ret;
@@ -149,10 +142,6 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
   cur += sizeof(u32);
 
   va_start(args, ret_size);
-
-  // char tmp[10];
-  // unsigned *pid_split;
-
   for (u32 i = 1; i < params_len; i++)
   {
     switch (func_desc[i])
@@ -171,12 +160,6 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
         if (!update_size(&msg_size, sizeof(u64)))
         {
           *((u64 *) cur) = va_arg(args, u64);
-
-          // pid_split = (unsigned *)((u64 *) cur);
-          // itoa_base(pid_split[0], tmp, 10);
-          // kwrite(COLOR_WHITE, "SEND : pid = ", 0);
-          // kwrite(COLOR_WHITE, tmp, 0);
-          // kwrite(COLOR_WHITE, "\n", 0);
           cur += sizeof(u64);
           break;
         }
@@ -196,17 +179,10 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
       case 's':
         str = va_arg(args, char *);
         u32 len = strlen(str);
-        if (!update_size(&msg_size, len + sizeof(u32)))
+        if (!update_size(&msg_size, len + 1))
         {
-
-          memcpy(cur, (void *)&len, sizeof(u32));
-
-          cur += sizeof(u32);
-
           memcpy(cur, str, len + 1);
           cur += len;
-
-
           break;
         }
         else
@@ -219,9 +195,8 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
 
   va_end(args);
 
-  sys_ret = send(pid, &msg_buff, msg_size);
+  sys_ret = send(pid, msg_buff, msg_size);
 
-  // kwrite(COLOR_WHITE, "RPC\n", 0);
   if (sys_ret < 0)
     return sys_ret;
 
@@ -229,32 +204,27 @@ int call_rpc(u64 pid, u32 function_id, const char *func_desc, void *ret,
       msg_buff);
 }
 
-int register_rpc(struct rpc *rpcs, unsigned size)
+int register_rpc(handler_rpc *callbacks, const char **func_descs,
+    unsigned size)
 {
-  if (!rpcs || !size)
-  {
-    reg_rpcs = 0;
-    reg_rpcs_num = 0;
+  if (!callbacks || !func_descs || !size)
     return -EINVAL;
-  }
 
   for (u32 i = 0; i < size; i++)
-    if (!rpcs[i].handler || strlen(rpcs[i].func_desc) < 1)
+    if (!callbacks[i] || strlen(func_descs[i]) < 1)
       return -EINVAL;
 
-  reg_rpcs = rpcs;
-  reg_rpcs_num = size;
+  reg_rpcs.callbacks = callbacks;
+  reg_rpcs.func_descs = func_descs;
+  reg_rpcs.num = size;
   return 0;
 }
 
-static int check_msg_size(u32 func_id, int msg_size, char *msg)
+static int check_msg_size(u32 func_id, int msg_size)
 {
-  const char *func_desc = reg_rpcs[func_id].func_desc;
+  const char *func_desc = reg_rpcs.func_descs[func_id];
   unsigned fdesc_size = strlen(func_desc);
   int target_size = sizeof(u32);
-  int str_size;
-
-  // char tmp[10];
 
   for (u32 i = 1; i < fdesc_size; i++)
   {
@@ -273,27 +243,15 @@ static int check_msg_size(u32 func_id, int msg_size, char *msg)
         break;
 
       case 's':
-        str_size = *((int *)&msg[target_size]);
-        // itoa_base(str_size, tmp, 10);
-        // kwrite(COLOR_WHITE, "STR SIZE = ", 0);
-        // kwrite(COLOR_WHITE, tmp, 0);
-        // kwrite(COLOR_WHITE, "\n", 0);
-        // if (msg_size < target_size)
-          // return -EBADMSG;
-
-        // FIXME
-        target_size += str_size + sizeof(u32);
-        break;
+        if (msg_size < target_size)
+          return -EBADMSG;
+        return 0;
 
       default:
         break;
     }
   }
 
-  // itoa_base(target_size, tmp, 10);
-  // kwrite(COLOR_WHITE, " Target size = ", 0);
-  // kwrite(COLOR_WHITE, tmp, 0);
-  // kwrite(COLOR_WHITE, " \n", 0);
   if (msg_size != target_size)
     return -EBADMSG;
 
@@ -302,34 +260,20 @@ static int check_msg_size(u32 func_id, int msg_size, char *msg)
 
 int listen_rpc(void)
 {
-  static char msg_buff[MSG_MAXSIZE];
+  static char msg_buff_in[MSG_MAXBUFF];
+  static char msg_buff_out[MSG_MAXSIZE];
   u64 sender;
   u32 *func_id;
   int sys_ret;
   int msg_size;
-  void *ret;
   u32 ret_size;
-  // char tmp[10];
 
-  if (!reg_rpcs)
+  if (!reg_rpcs.num)
     return 0;
 
   while (1)
   {
-    // kwrite(COLOR_WHITE, "Test\n", 0);
-      // kwrite(COLOR_WHITE, "TEST\n", 0);
-    // kwrite(15, "Recv listen_rpc RPC!\n", 0);
-
-    sys_ret = recv(RCV_ANYONE, msg_buff, MSG_MAXSIZE, &sender);
-
-
-  //   char tmp[10];
-  //   uitoa_base(*(unsigned *)msg_buff,  tmp, 10);
-  // kwrite(COLOR_WHITE, "Listen func id = ", 0);
-  // kwrite(COLOR_WHITE, tmp, 0);
-  // kwrite(COLOR_WHITE, "\n", 0);
-      // kwrite(COLOR_WHITE, "TEST2\n", 0);
-    // kwrite(COLOR_WHITE, "Hello\n", 0);
+    sys_ret = recv(RCV_ANYONE, &msg_buff_in, MSG_MAXBUFF, &sender);
 
     if (sys_ret < 0)
       return sys_ret;
@@ -339,44 +283,31 @@ int listen_rpc(void)
     if (msg_size < (int) sizeof(u32))
       return -EBADMSG;
 
-    func_id = (u32 *) msg_buff;
+    func_id = (u32 *) msg_buff_in;
 
-    if (*func_id >= reg_rpcs_num)
+    if (*func_id >= reg_rpcs.num)
       return -EBADMSG;
 
-    sys_ret = check_msg_size(*func_id, msg_size, msg_buff);
+    sys_ret = check_msg_size(*func_id, msg_size);
     if (sys_ret < 0)
       return sys_ret;
-    // kwrite(COLOR_WHITE, "Hello!\n", 0);
 
-
-    if (check_restrict_rpc(*func_id, sender) < 0)
-      return -EPERM;
-
-
-    reg_rpcs[*func_id].handler(
+    reg_rpcs.callbacks[*func_id](
         sender,
-        ((void *) &msg_buff[sizeof(u32)]),
-        &ret,
+        ((void *) &msg_buff_in[sizeof(u32)]),
+        msg_size - sizeof(u32),
+        ((void *) &msg_buff_out[sizeof(u32)]),
         &ret_size);
 
-    if (reg_rpcs[*func_id].func_desc[0] != 'v')
+    memcpy(msg_buff_out, msg_buff_in, sizeof(u32));
+
+    if (reg_rpcs.func_descs[*func_id][0] != 'v')
     {
       if (ret_size + sizeof(u32) > MSG_MAXSIZE)
         return -EMSGSIZE;
 
+      sys_ret = send(sender, &msg_buff_out, ret_size + sizeof(u32));
 
-      memcpy(&msg_buff[sizeof(u32)], &ret, ret_size);
-      // free(ret);
-
-      // uitoa_base((unsigned)ret, tmp, 16);
-      // uitoa_base(*(unsigned*)&msg_buff[sizeof(u32)], tmp, 16);
-      // kwrite(COLOR_WHITE, tmp, 0);
-      // kwrite(COLOR_WHITE, " \n", 0);
-
-      sys_ret = send(sender, msg_buff, ret_size + sizeof(u32));
-
-      // kwrite(COLOR_WHITE, "Lolilol", 0);
       if (sys_ret < 0)
         return sys_ret;
     }

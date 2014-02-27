@@ -21,10 +21,10 @@ struct                    s_program
 
 
 // RPC Handlers
-void                      exec_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      exit_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      kill_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
+void                      exec_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      exit_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      kill_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      service_pid_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
 
 // Register handlers
 void                      register_listen_rpcs();

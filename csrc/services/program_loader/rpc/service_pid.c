@@ -15,11 +15,12 @@
 extern u64                paging_pid;
 extern u64                io_pid;
 
-void                      service_pid_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
+void                      service_pid_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size)
 {
   char                    tmp[1024];
 
   sender = sender;
+  param_size = param_size;
 
   get_str_arg(&params, tmp);
 
@@ -32,6 +33,7 @@ void                      service_pid_rpc(u64 sender, void *params, void **ret, 
   else
     res = 0;
 
-  *ret = res;
+  memcpy(ret, res, sizeof(u64));
+  // *(unsigned *)ret = res;
   *ret_size = 8;
 }

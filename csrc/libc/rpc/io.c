@@ -1,6 +1,6 @@
 /*
  * File: io.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: RPC for io service
  *
@@ -8,17 +8,14 @@
 
 #include <rpc/io.h>
 #include <rpc/rpc.h>
-#include <unistd.h>
 
 const char *rpc_io_desc[4] =
 {
-  "iisi",   // write
+  "iiis",   // write
   "iiiic",  // write_at
-  "c",      // read
+  "s",      // read
   "c",      // read_one
 };
-
-int itoa_base(int n, char *str, unsigned base);
 
 int rpc_write(int color, const char *str, unsigned size)
 {
@@ -37,8 +34,8 @@ int rpc_write(int color, const char *str, unsigned size)
       (void *) &res,
       0,
       color,
-      str,
-      size);
+      size,
+      str);
 
   if (sys_ret < 0)
     return sys_ret;

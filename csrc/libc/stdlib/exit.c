@@ -1,6 +1,6 @@
 /*
  * File: exit.c
- * Author: Victor <viaxxx@lse.epita.fr>
+ * Author: Victor <vaperce@gmail.com>
  *
  * Description: simple implementation for exit
  *

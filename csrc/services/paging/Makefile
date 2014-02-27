@@ -26,14 +26,15 @@ CFLAGS 				= -I../../libc/include/ -Iinclude/ -m32 -nostdlib -Wall -Wextra -Werr
 	  -fno-builtin -std=c11 -fno-stack-protector -g -mno-mmx -mno-sse\
 	  -mno-sse2 -mno-sse3 -mno-3dnow
 	  #-Wall -O  -nostdlib -fstrength-reduce -fomit-frame-pointer -finline-functions -nostdinc -fno-builtin -I./$(PATH_INCLUDE) -I./$(PATH_LIB_INCLUDE)
-LDFLAGS				= -L../../libc -lmikro_libc
+LDFLAGS				= -L../../libc -lmikro_libc_no_start
 
 # Srcs
 C_SRC 				= main.c 						\
-								mm.c 				\
+								_start.c 					\
+								mm.c 							\
 								rpc/rpc.c 				\
 								rpc/mmap.c 				\
-								rpc/mmap_phys.c 		\
+								rpc/mmap_phys.c 	\
 								rpc/munmap.c 			\
 								rpc/_create_as.c 	\
 								rpc/_delete_as.c 	\

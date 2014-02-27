@@ -1,0 +1,42 @@
+SYSCALL: recv
+ FROM: 0
+RPC-PG: mmap(0x0, 0x3, 1)
+SYSCALL: send
+ TO: 42 FUNC ID: 0
+SYSCALL: recv
+ FROM: 0
+RPC-PG: munmap(...)
+SYSCALL: send
+ TO: 42 FUNC ID: 2
+SYSCALL: recv
+ FROM: 0
+RPC-PG: mmap(0x0, 0x3, 1)
+SYSCALL: send
+ TO: 42 FUNC ID: 0
+SYSCALL: recv
+ FROM: 0
+RPC-PG: munmap(...)
+SYSCALL: send
+ TO: 42 FUNC ID: 2
+SYSCALL: recv
+ FROM: 0
+RPC-PG: mmap_phys(0x42, 0x42, 0xf, 1)
+SYSCALL: send
+ TO: 42 FUNC ID: 1
+SYSCALL: recv
+ FROM: 0
+RPC-PG: create_as(42)
+SYSCALL: send
+ TO: 42 FUNC ID: 3
+SYSCALL: recv
+ FROM: 0
+RPC-PG: mmap_sys(42, 0x42, 0xf, 1)
+SYSCALL: send
+ TO: 42 FUNC ID: 5
+SYSCALL: recv
+ FROM: 0
+RPC-PG: del_as(42)
+SYSCALL: send
+ TO: 42 FUNC ID: 4
+SYSCALL: recv
+ FROM: 0

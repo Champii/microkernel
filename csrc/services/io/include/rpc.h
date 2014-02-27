@@ -14,10 +14,10 @@
 # include                 <sys/sys_types.h>
 
 // RPC Handlers
-void                      write_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      write_at_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      read_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
-void                      read_one_rpc(u64 sender, void *params, void **ret, unsigned *ret_size);
+void                      write_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      write_at_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      read_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
+void                      read_one_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size);
 
 // Register handlers
 void                      register_listen_rpcs();

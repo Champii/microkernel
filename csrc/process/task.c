@@ -225,8 +225,8 @@ void switch_task(struct s_regs *regs)
 
   memcpy(&current_task->regs, regs, sizeof (*regs));
 
-  // printk(COLOR_WHITE, "Switch task : cur = ");
-  // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
+  printk(COLOR_WHITE, "Switch task : cur = ");
+  printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
   // printk(COLOR_WHITE, "\n");
 
   current_task = current_task->next;
@@ -234,9 +234,9 @@ void switch_task(struct s_regs *regs)
   if (!current_task)
     current_task = ready_queue;
 
-  // printk(COLOR_WHITE, " next = ");
-  // printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
+  printk(COLOR_WHITE, " next = ");
+  printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
+  printk(COLOR_WHITE, "\n");
 
   if (!current_task->regs.cs)
   {

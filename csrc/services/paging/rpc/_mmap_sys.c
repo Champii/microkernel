@@ -19,12 +19,13 @@ unsigned pl_map_start = 0x30000000;
 int itoa_base(int n, char *str, unsigned base);
 int uitoa_base(unsigned n, char *str, unsigned base);
 
-void                      _mmap_sys_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
+void                      _mmap_sys_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size)
 {
   sender = sender;
   params = params;
   ret = ret;
   ret_size = ret_size;
+  param_size = param_size;
 
   u64 pid = get_u64_arg(&params);
   unsigned vaddr = get_unsigned_arg(&params);
@@ -51,9 +52,15 @@ void                      _mmap_sys_rpc(u64 sender, void *params, void **ret, un
   unsigned i;
 
 
+  uitoa_base((unsigned)get_page(0x42424242, 0, pl_pd)->frame, tmp, 16);
+  kwrite(15, "TEST FRAME = ", 0);
+  kwrite(15, tmp, 0);
+  kwrite(15, " (should be 0x4242)\n", 0);
   for (i = 0; i < size; i += 0x1000)
   {
     // t_page *page = get_page(vaddr + i, 0, pd);
+
+
 
 
     t_page *page = get_page(vaddr + i, 1, pd);
@@ -61,7 +68,7 @@ void                      _mmap_sys_rpc(u64 sender, void *params, void **ret, un
     if (page->frame)
     {
       kwrite(4, "MMAP SYS : Existing page ! Abort.\n", 0);
-      *ret = 0;
+      *(unsigned *)ret = 0;
       *ret_size = sizeof(unsigned);
       return ;
     }
@@ -84,7 +91,7 @@ void                      _mmap_sys_rpc(u64 sender, void *params, void **ret, un
   }
 
   // return pointer
-  *ret = (void *)pl_virt_start;
+  *(unsigned *)ret = pl_virt_start;
   *ret_size = sizeof(unsigned);
 
 }

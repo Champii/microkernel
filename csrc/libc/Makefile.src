@@ -1,0 +1,31 @@
+SRC = \
+      	others/_start.c\
+	others/kill.c\
+	others/get_argument.c\
+	others/restrict_rpc.c\
+	others/errno.c\
+	rpc/io.c\
+	rpc/paging.c\
+	rpc/program_loader.c\
+	rpc/rpc.c\
+	stdio/buffer_internal.c\
+	stdio/itoa_base.c\
+	stdio/printf.c\
+	stdlib/exit.c\
+	stdlib/malloc.c\
+	string/memcpy.c\
+	string/memset.c\
+      	string/strlen.c\
+	string/strcmp.c\
+	string/strncmp.c\
+	string/strncpy.c\
+	string/port.c\
+	sys/mman.c\
+	sys/socket.c\
+	sys/syscall.c\
+	sys/wait.c\
+	unistd/exec.c\
+	unistd/io_wrapper.c\
+	unistd/sleep.c
+
+

@@ -13,11 +13,12 @@
 #include                  <rpc.h>
 #include                  <get_argument.h>
 
-void                      write_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
+void                      write_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size)
 {
   char str[1024];
 
   sender = sender;
+  param_size = param_size;
 
   unsigned color = get_unsigned_arg(&params);
   unsigned str_size = get_str_arg(&params, str);
@@ -26,6 +27,6 @@ void                      write_rpc(u64 sender, void *params, void **ret, unsign
 
   printk(color, str);
 
-  *ret = 0;
+  *(unsigned *)ret = 0;
   *ret_size = 4;
 }

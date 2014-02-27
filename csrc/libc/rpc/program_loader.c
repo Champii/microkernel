@@ -1,6 +1,6 @@
 /*
  * File: program_loader.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: RPC for program loader service
  *
@@ -8,11 +8,10 @@
 
 #include <rpc/program_loader.h>
 #include <rpc/rpc.h>
-#include <unistd.h>
 
 const char *rpc_pl_desc[4] =
 {
-  "ic", // exec
+  "is", // exec
   "i", // exit
   "iI", // kill
   "Is" // service_pid

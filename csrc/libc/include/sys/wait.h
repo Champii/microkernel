@@ -1,6 +1,6 @@
 /*
  * File: sys/wait.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: Unix wait function adapted for EPITECH K II
  *

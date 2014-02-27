@@ -1,0 +1,69 @@
+SYSCALL: send
+ TO: 1 FUNC ID: 3
+SYSCALL: recv
+ FROM: 1
+SYSCALL: send
+ TO: 2 FUNC ID: 0
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 1 FUNC ID: 3
+SYSCALL: recv
+ FROM: 1
+SYSCALL: send
+ TO: 3 FUNC ID: 0
+SYSCALL: recv
+ FROM: 3
+SYSCALL: send
+ TO: 2 FUNC ID: 2
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 2 FUNC ID: 0
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 2 FUNC ID: 2
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 1 FUNC ID: 0
+SYSCALL: recv
+ FROM: 1
+SYSCALL: send
+ TO: 1 FUNC ID: 2
+SYSCALL: recv
+ FROM: 1
+SYSCALL: send
+ TO: 2 FUNC ID: 1
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 2 FUNC ID: 3
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 2 FUNC ID: 5
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 2 FUNC ID: 4
+SYSCALL: recv
+ FROM: 2
+SYSCALL: send
+ TO: 3 FUNC ID: 1
+SYSCALL: recv
+ FROM: 3
+SYSCALL: send
+ TO: 3 FUNC ID: 3
+SYSCALL: recv
+ FROM: 3
+SYSCALL: send
+ TO: 3 FUNC ID: 2
+SYSCALL: recv
+ FROM: 3
+Success!
+SYSCALL: send
+ TO: 1 FUNC ID: 1
+SYSCALL: recv
+ FROM: 1

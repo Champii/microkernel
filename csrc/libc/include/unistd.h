@@ -1,6 +1,6 @@
 /*
  * File: unistd.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: Unix standard functions adapted to EPITECH K II
  *

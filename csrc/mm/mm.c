@@ -108,6 +108,7 @@ unsigned                  virt_to_phys(unsigned virt)
   return (phys);
 }
 
+
 unsigned                  phys_to_virt(unsigned phys)
 {
   return (0);
@@ -350,6 +351,30 @@ t_page_directory          *clone_directory(t_page_directory *src)
   return dir;
 }
 
+t_page_directory          *create_empty_directory()
+{
+  unsigned int            phys;
+  t_page_directory        *src = page_dir;
+  t_page_directory        *dir = (t_page_directory*)kmalloc_ap(sizeof(t_page_directory), &phys);
+
+  memset(dir, 0, sizeof(t_page_directory));
+
+  unsigned int offset = (unsigned int)dir->tablesPhysical - (unsigned int)dir;
+  dir->physicalAddr = phys + offset;
+
+  int i;
+  for (i = 0; i < 1024; i++)
+  {
+    if (i >= 768 || i <= 5)
+    {
+      dir->tables[i] = src->tables[i];
+      dir->tablesPhysical[i] = src->tablesPhysical[i];
+    }
+
+  }
+  return dir;
+}
+
 void                      invalid_opcode(struct s_regs *regs)
 {
   printk(COLOR_RED, "INVALID OPCODE AT : 0x");
@@ -393,8 +418,8 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault\n");
 
-  printk(COLOR_WHITE, "Page dir page : ");
-  printk(COLOR_WHITE, my_putnbr_base(get_page(faulting_address, 0, cur_dir), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "Page dir page : ");
+  // printk(COLOR_WHITE, my_putnbr_base(get_page(faulting_address, 0, cur_dir), "0123456789ABCDEF"));
   for(;;);
 }
 
@@ -406,13 +431,13 @@ void                      switch_page_directory(t_page_directory *new_dir)
 
 void                      invlpg(void *vaddr)
 {
-  // unsigned addr;
-  // __asm__ volatile("mov %%cr3, %0": "+b"(addr));
-  // __asm__ volatile("mov %0, %%cr3":: "b"(addr));
+  unsigned addr = 0;
+  __asm__ volatile("mov %%cr3, %0": "+b"(addr));
+  __asm__ volatile("mov %0, %%cr3":: "b"(addr));
 
-  __asm__ volatile("invlpg (%0)":: "r"(vaddr) : "memory");
+  // __asm__ volatile("invlpg (%0)":: "r"(vaddr) : "memory");
   printk(COLOR_WHITE, "INVLPG frame = ");
-  printk(COLOR_WHITE, my_putnbr_base(get_page((unsigned)vaddr * 0x1000, 0, cur_dir), "0123456789ABCDEF"));
+  printk(COLOR_WHITE, my_putnbr_base(get_page((unsigned)vaddr * 0x1000, 0, cur_dir)->frame, "0123456789ABCDEF"));
   printk(COLOR_WHITE, "\n");
 }
 

@@ -21,12 +21,10 @@ int strcmp(const char* a, const char* b);
 int strncmp(const char* a, const char* b, size_t len);
 char* strncpy(char* s1, const char* s2, size_t n);
 void* memset(void* s1, int c, size_t n);
-unsigned short *memsetw(unsigned short *dest, unsigned short val, int count);
 void* memcpy(void* s1, const void* s2, size_t n);
-
 unsigned char  inportb(unsigned short _port);
-void  outportb(unsigned short _port, unsigned char _data);
-
+void           outportb(unsigned short _port, unsigned char _data);
+unsigned short *memsetw(unsigned short *dest, unsigned short val, int count);
 
 #ifdef __cplusplus
 }

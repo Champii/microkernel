@@ -1,6 +1,6 @@
 /*
  * File: exec.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: exec function
  *

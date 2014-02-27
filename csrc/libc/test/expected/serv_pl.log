@@ -1,0 +1,27 @@
+SYSCALL: recv
+ FROM: 0
+RPC-PL: service_pid() - ok
+SYSCALL: send
+ TO: 42 FUNC ID: 3
+SYSCALL: recv
+ FROM: 0
+RPC-PL: service_pid() - ok
+SYSCALL: send
+ TO: 42 FUNC ID: 3
+SYSCALL: recv
+ FROM: 0
+RPC-PL: exec(lol)
+SYSCALL: send
+ TO: 42 FUNC ID: 0
+SYSCALL: recv
+ FROM: 0
+RPC-PL: kill(42)
+SYSCALL: send
+ TO: 42 FUNC ID: 2
+SYSCALL: recv
+ FROM: 0
+RPC-PL: exit()
+SYSCALL: send
+ TO: 42 FUNC ID: 1
+SYSCALL: recv
+ FROM: 0

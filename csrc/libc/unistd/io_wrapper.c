@@ -1,6 +1,6 @@
 /*
  * File: io_wrapper.c
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: basic i/o functions
  *
@@ -8,9 +8,10 @@
 
 #include <rpc/io.h>
 #include <unistd.h>
-#include <sys/syscall.h>
 
 // TEMP syscall
+#include <sys/syscall.h>
+
 int kwrite(int color, const char *str, unsigned size)
 {
   sys_write(color, str);

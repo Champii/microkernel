@@ -1,6 +1,6 @@
 /*
  * File: sys/socket.h
- * Author: Victor Aperce <viaxxx@lse.epita.fr>
+ * Author: Victor Aperce <vaperce@gmail.com>
  *
  * Description: Unix socket functions adapted to EPITECH K II
  *
@@ -12,7 +12,8 @@
 #include <sys/types.h>
 
 #define RCV_ANYONE 0
-#define MSG_MAXSIZE 0x1000
+#define MSG_MAXBUFF 0x1000
+#define MSG_MAXSIZE (MSG_MAXBUFF - 8)
 
 #ifdef __cplusplus
 extern "C"

@@ -1,0 +1,22 @@
+SYSCALL: recv
+ FROM: 0
+RPC-IO: write(0xf, lol, 3)
+SYSCALL: send
+ TO: 42 FUNC ID: 0
+SYSCALL: recv
+ FROM: 0
+RPC-IO: write_at(27, 27, 0xf, v)
+SYSCALL: send
+ TO: 42 FUNC ID: 1
+SYSCALL: recv
+ FROM: 0
+RPC-IO: read_one()
+SYSCALL: send
+ TO: 42 FUNC ID: 3
+SYSCALL: recv
+ FROM: 0
+RPC-IO: read()
+SYSCALL: send
+ TO: 42 FUNC ID: 2
+SYSCALL: recv
+ FROM: 0

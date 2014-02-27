@@ -32,7 +32,7 @@ static unsigned           *get_prog_addr_by_name(char *name)
   return 0;
 }
 
-void                      exec_rpc(u64 sender, void *params, void **ret, unsigned *ret_size)
+void                      exec_rpc(u64 sender, void *params, u32 param_size, void *ret, unsigned *ret_size)
 {
   u64                     new_pid;
   int                     sys_ret;
@@ -41,6 +41,7 @@ void                      exec_rpc(u64 sender, void *params, void **ret, unsigne
   unsigned                *prog_addr;
 
   sender = sender;
+  param_size = param_size;
 
   get_str_arg(&params, prog_name);
   // kwrite(15, "EXEC : ", 0);
@@ -58,16 +59,17 @@ void                      exec_rpc(u64 sender, void *params, void **ret, unsigne
     kwrite(15, "Create process : ", 0);
     print_error(sys_ret);
 
-    *ret = (void *)sys_ret;
+    *(unsigned *)ret = sys_ret;
     *ret_size = 4;
     return;
   }
 
+  kwrite(15, "Create as : ", 0);
   if ((sys_ret = rpc_create_as(new_pid)) < 0)
   {
-    // kwrite(15, "Create as : ", 0);
+    kwrite(15, "Create as : ", 0);
     print_error(sys_ret);
-    *ret = (void *)sys_ret;
+    *(unsigned *)ret = sys_ret;
     *ret_size = 4;
     return;
   }
@@ -76,12 +78,12 @@ void                      exec_rpc(u64 sender, void *params, void **ret, unsigne
   unsigned stack;
 
   //FIXME
-  // kwrite(15, "Load elf !", 0);
+  kwrite(15, "Load elf !", 0);
   if ((sys_ret = load_elf(new_pid, prog_addr, &entry, &stack)) < 0)
   {
     kwrite(15, "Load elf : ", 0);
     print_error(sys_ret);
-    *ret = (void *)sys_ret;
+    *(unsigned *)ret = sys_ret;
     *ret_size = 4;
     return;
   }
@@ -91,7 +93,7 @@ void                      exec_rpc(u64 sender, void *params, void **ret, unsigne
   {
     kwrite(15, "Run process : ", 0);
     print_error(sys_ret);
-    *ret = (void *)sys_ret;
+    *(unsigned *)ret = sys_ret;
     *ret_size = 4;
     return;
   }

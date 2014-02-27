@@ -1,45 +1,31 @@
-mikro_libc: a minimal libc build upon libmikroc from mikro project, modified
+mikro_libc: a minimal libc built upon libmikroc from mikro project, modified
             for EPITECH Kernel II
 
-Version: 0.1
-See LICENSE and AUTHORS file for their respective information.
+Version: 0.2
+See LICENSE, AUTHORS and CONTRIBUTORS files for their respective information.
 
+
+Overview
+========
 
 All standard UNIX functions are placed in their respective headers.
 RPC functions are in folder include/rpc/
 
+Tested on Fedora Linux 20.
+Please report any bugs to vaperce@gmail.com
 
-RPC management functions:
-=> int call_rpc(u64 pid, u32 funcion_id, const char *func_desc, void *ret,
-    u32 ret_size, ...);
-Call an RPC on an other process (normally you DON'T HAVE TO USE THIS FUNCTION)
- pid: pid of the process to execute the RPC
- function_id: function id of the RPC
- func_desc: string signing the RPC function
- ret: pointer to a memory area where return will be stored
- ret_size: return size
- ...: RPC function arguments
 
-=> int register_rpc(struct rpc *rpcs, unsigned size);
-Register rpc exported in current binary
- rpcs: struct rpc array representing all exported rpc in order of rpc id
- size: number of rpc exported
+Build
+=====
 
-struct rpc contains:
- func_desc: string signing exported function (already provided in rpc_*_desc in
-            include/rpc/*.h)
- handler: rpc callback function of type:
-          void handler_rpc (u64 sender, void *params, void **ret,
-                            u32 *ret_size);
-  - sender: sender program pid
-  - params: rpc function parameters (one after the other so there is no
-    alignment padding, think about __attribute__((packed)) gcc attribute)
-  - ret: set this pointer to the address of your return (will be freed after)
-  - ret_size: pointer to the size of the return
+To build the libc with debug symbols: make
+To build the libc for release:        RELEASE=1 make
+To run tests:                         make test
+To clean all object files:            make clean
+To clean all repository:              make distclean
 
-=> int listen_rpc(void);
-Listen to all exported RPC
-
+ONLY BUILDS ON LINUX.
+Change Makefile.rules to make it suits your configuration.
 
 NOTE: This static library exists in 3 versions:
         - mikro_libc.a: all functions
@@ -47,5 +33,41 @@ NOTE: This static library exists in 3 versions:
         - mikro_libc_no_mman_no_start.a: no _start function, no mman functions
 
 
-This code is BETA and may be updated.
-Please report any bugs to vaperce@gmail.com
+About RPC management functions
+==============================
+
+=> int call_rpc(u64 pid, u32 funcion_id, const char *func_desc, void *ret,
+    u32 ret_size, ...);
+Call an RPC on an other process (normally, you DON'T HAVE TO USE THIS FUNCTION)
+ pid: pid of the process to execute the RPC
+ function_id: function id of the RPC
+ func_desc: string signing the RPC function
+ ret: pointer to a memory area where return will be stored
+ ret_size: return size
+ ...: RPC function arguments
+
+=> int register_rpc(handler_rpc *callbacks, const char **func_descs,
+                    unsigned size);
+Register rpc exported in current binary
+ callbacks: array representing all exported rpc callbacks in order of rpc id
+ func_descs: function descriptor array representing all exported rpc function
+             descriptors in order of rpc id
+ size: number of rpc exported
+
+A function descriptor is a string signing exported function (already provided
+as rpc_*_desc in include/rpc/*.h)
+A callback is function called on RPC of type:
+  void handler_rpc (u64 sender, void *params, u32 param_size, void **ret,
+                    u32 *ret_size);
+  - sender: sender program pid
+  - params: rpc function parameters (one after the other so there is no
+    alignment padding, think about __attribute__((packed)) gcc attribute)
+  - param_size: rpc function parameter size
+  - ret: set pointer to a buffer to write your function return
+  - ret_size: pointer to the size of the return
+
+=> int listen_rpc(void);
+Listen to all exported RPC
+
+For these functions, have a look at test/dummy_serv_??.c to see how they are
+used.
