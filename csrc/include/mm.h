@@ -30,7 +30,7 @@ typedef struct        s_page
   unsigned            dirty      : 1;
   unsigned            unused     : 7;
   unsigned            frame      : 20;
-}                     t_page;
+}                     __attribute__((packed)) t_page;
 
 typedef struct s_free_block {
 
@@ -42,14 +42,14 @@ typedef struct s_free_block {
 typedef struct        s_page_table
 {
   t_page              pages[1024];
-}                     t_page_table;
+}                     __attribute__((packed)) t_page_table;
 
 typedef struct        s_page_directory
 {
   t_page_table        *tables[1024];
   unsigned            tablesPhysical[1024];
   unsigned            physicalAddr;
-}                     t_page_directory;
+}                     __attribute__((packed)) t_page_directory;
 
 unsigned              virt_to_phys(unsigned virt);
 unsigned              phys_to_virt(unsigned phys);

@@ -67,19 +67,11 @@ int                       check_elf_magic(unsigned char *to_check)
 
 #define PAGING_AS_START_OFFSET 128 // 0x20000000
 
-  // paging_dir->tables[PAGING_AS_START_OFFSET] = (t_page_table *)pl_dir;
-  // paging_dir->tables[PAGING_AS_START_OFFSET + 1] = (t_page_table *)paging_dir;
-  // paging_dir->tables[PAGING_AS_START_OFFSET + 2] = (t_page_table *)io_dir;
-
 void                      map_services_as_in_paging()
 {
   t_page_directory        *pl_dir = services[0].pd;
   t_page_directory        *paging_dir = services[1].pd;
   t_page_directory        *io_dir = services[2].pd;
-
-  // t_page *pl_dir_virt = get_page((unsigned)pl_dir, 0, page_dir);
-  // t_page *paging_dir_virt = get_page((unsigned)paging_dir, 0, page_dir);
-  // t_page *io_dir_virt = get_page((unsigned)io_dir, 0, page_dir);
 
   unsigned i;
   unsigned j = 0;
@@ -87,6 +79,7 @@ void                      map_services_as_in_paging()
 
   /***************/
 
+  alloc_page_at(0x4242, get_page(0x10000000, 1, paging_dir), 0, 1);
   alloc_page(get_page(start_map, 1, paging_dir), 0, 1);
 
   alloc_page_at(pl_dir->physicalAddr, get_page(start_map + 0x1000, 1, paging_dir), 0, 1);
@@ -100,7 +93,6 @@ void                      map_services_as_in_paging()
   start_map += 1024 * 0x1000;
 
   /***************/
-  alloc_page_at(0x4242, get_page(0x42424242, 1, paging_dir), 0, 1);
 
   alloc_page(get_page(start_map, 1, paging_dir), 0, 1);
 
@@ -131,35 +123,12 @@ void                      map_services_as_in_paging()
 
   /***************/
 
-
-  // alloc_page_at(pl_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR, 1, paging_dir), 0, 1);
-  // alloc_page_at((pl_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
-
-  // alloc_page_at(paging_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + pd_size, 1, paging_dir), 0, 1);
-  // alloc_page_at((paging_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + pd_size + 0x1000, 1, paging_dir), 0, 1);
-
-  // alloc_page_at(io_dir_virt->frame * 0x1000, get_page(PAGING_AS_ADDR + (2 * pd_size), 1, paging_dir), 0, 1);
-  // alloc_page_at((io_dir_virt->frame + 1) * 0x1000, get_page(PAGING_AS_ADDR + (2 * pd_size) + 0x1000, 1, paging_dir), 0, 1);
-
-
-  // alloc_page_at(pl_dir->physicalAddr, get_page(PAGING_AS_ADDR, 1, paging_dir), 0, 1);
-
-  // alloc_page_at(paging_dir->physicalAddr, get_page(PAGING_AS_ADDR + 0x1000, 1, paging_dir), 0, 1);
-
-  // alloc_page_at(io_dir->physicalAddr, get_page(PAGING_AS_ADDR + (2 * 0x1000), 1, paging_dir), 0, 1);
-
-
-  // int i;
-  // for (i = PAGING_AS_ADDR + (3 * 0x1000); i < PAGING_AS_ADDR + (32 * 0x1000); i += 0x1000)
-  //   alloc_page(get_page(i, 1, paging_dir), 0, 1);
-
   // alloc page for temp heap
   for (i = PAGING_HEAP_ADDR; i < PAGING_HEAP_ADDR + (1024 * 0x1000); i++)
     alloc_page(get_page(i, 1, paging_dir), 0, 1);
 
+  // for (j = 0; j < 1000000000; j++);
 }
-
-// #define PL_MAP_ADDR 0x30000000
 
 void                      map_regular_in_pl(unsigned count)
 {
@@ -175,10 +144,6 @@ void                      map_regular_in_pl(unsigned count)
 
   for (j = 0; j < count - 4; j++)
   {
-    printk(COLOR_WHITE, "Mapped regular prog = ");
-    printk(COLOR_WHITE, my_putnbr_base(programs[j]->mod_start, "0123456789ABCDEF"));
-    printk(COLOR_WHITE, "\n");
-
     if (check_elf_magic((unsigned char *)programs[j]->mod_start) < 0)
       printk(COLOR_RED, "ERROR REGULAR PROGRAM ELF\n");
 
@@ -191,7 +156,6 @@ void                      map_regular_in_pl(unsigned count)
 
   //TEST
   alloc_page_at(0x4242, get_page(0x42424242, 1, pl_dir), 0, 1);
-
 }
 
 static void               push_pid_on_stack(unsigned **stack, u64 *pid)
@@ -208,20 +172,6 @@ static void               push_addr_on_stack(unsigned **stack, unsigned addr)
   *stack -= 1;
   **stack = addr;
 }
-// static void               push_pid_on_stack(unsigned **stack, u64 *pid)
-// {
-//   unsigned *pid_split = (unsigned *)pid;
-//   **stack = pid_split[1];
-//   *stack -= 1;
-//   **stack = pid_split[0];
-//   *stack -= 1;
-// }
-
-// static void               push_addr_on_stack(unsigned **stack, unsigned addr)
-// {
-//   **stack = addr;
-//   *stack -= 1;
-// }
 
 static void               prepare_stack(t_task *task, t_page_directory *root_pd, void **stack, unsigned count)
 {
@@ -245,19 +195,12 @@ static void               prepare_stack(t_task *task, t_page_directory *root_pd,
   }
   else if (task->id == 2)
   {
-    printk(COLOR_WHITE, "First frame = ");
-    printk(COLOR_WHITE, my_putnbr_base(first_frame(), "0123456789"));
-    printk(COLOR_WHITE, "\n");
     push_addr_on_stack(&ustack, first_frame());
     push_addr_on_stack(&ustack, PAGING_AS_ADDR);
-
   }
 
   push_pid_on_stack(&ustack, pl_pid);
   push_addr_on_stack(&ustack, (unsigned)ustack);
-  // printk(COLOR_WHITE, "Address pushed on stack : 0x");
-  // printk(COLOR_WHITE, my_putnbr_base((unsigned)*ustack, "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, "\n");
 
   ustack -= 1;
   switch_page_directory(cur_dir);
@@ -276,19 +219,12 @@ void                      prepare_processes(unsigned count)
   {
     prepare_stack(services[i].task, services[i].pd, &services[i].stack, count);
     run_process(services[i].task, services[i].entry, services[i].stack, services[i].pd);
-    // printk(COLOR_WHITE, "Process stack : 0x");
-    // printk(COLOR_WHITE, my_putnbr_base(services[i].stack, "0123456789ABCDEF"));
-    // printk(COLOR_WHITE, "\n");
   }
 }
 
 void                      init_services(unsigned count, struct s_multiboot_module *module)
 {
   int                     i;
-
-  printk(COLOR_WHITE, "Modules found = ");
-  printk(COLOR_WHITE, my_putnbr_base(count, "0123456789"));
-  printk(COLOR_WHITE, "\n");
 
   for (i = 0; i < count; i++)
   {
@@ -358,9 +294,6 @@ void                      init_services(unsigned count, struct s_multiboot_modul
         memset((void *)(ph->p_vaddr + ph->p_filesz), 0, ph->p_memsz - ph->p_filesz);
         alloc_page(get_page(((ph->p_vaddr + ph->p_memsz) / 0x1000 * 0x1000) + 0x1000, 1, new_pd), 0, 1);
         new_stack = (unsigned *)(((ph->p_vaddr + ph->p_memsz) / 0x1000 * 0x1000) + 0x1000);
-        printk(COLOR_WHITE, "Stack start = 0x");
-        printk(COLOR_WHITE, my_putnbr_base((unsigned)new_stack, "0123456789ABCDEF"));
-        printk(COLOR_WHITE, "\n");
       }
       switch_page_directory(cur_dir);
 

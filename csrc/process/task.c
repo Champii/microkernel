@@ -197,20 +197,8 @@ void check_sleeping()
   {
     t_task *tmp_next = tmp->next;
 
-    // printk(COLOR_WHITE, "sleeping task needed tick : ");
-    // printk(COLOR_WHITE, my_putnbr_base(tmp->sleep_count, "0123456789"));
-    // printk(COLOR_WHITE, " cur tick : ");
-    // printk(COLOR_WHITE, my_putnbr_base(tick, "0123456789"));
-    // printk(COLOR_WHITE, " PID : ");
-    // printk(COLOR_WHITE, my_putnbr_base(tmp->id, "0123456789"));
-    // printk(COLOR_WHITE, "\n");
     if (tmp->sleep_count < tick)
-    {
-      printk(COLOR_WHITE, "Wake up : ");
-      printk(COLOR_WHITE, my_putnbr_base(tmp->id, "0123456789"));
-      printk(COLOR_WHITE, "\n");
       reschedule_task(tmp);
-    }
 
     tmp = tmp_next;
   }
@@ -225,18 +213,10 @@ void switch_task(struct s_regs *regs)
 
   memcpy(&current_task->regs, regs, sizeof (*regs));
 
-  printk(COLOR_WHITE, "Switch task : cur = ");
-  printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
-
   current_task = current_task->next;
 
   if (!current_task)
     current_task = ready_queue;
-
-  printk(COLOR_WHITE, " next = ");
-  printk(COLOR_WHITE, my_putnbr_base(current_task->id, "0123456789"));
-  printk(COLOR_WHITE, "\n");
 
   if (!current_task->regs.cs)
   {

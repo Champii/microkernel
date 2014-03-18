@@ -46,10 +46,6 @@ int                       create_process(u64 *user_pid)
 
   new_task->id = pid;
 
-  printk(COLOR_WHITE, "Created process : ");
-  printk(COLOR_WHITE, my_putnbr_base(pid, "0123456789"));
-  printk(COLOR_WHITE, "\n");
-
   return 0;
 }
 
@@ -77,10 +73,6 @@ int                       run_process(void *task_struct, void *entry, void *stac
   task->next = 0;
 
   schedule_task(task);
-
-  printk(COLOR_WHITE, "Running process : ");
-  printk(COLOR_WHITE, my_putnbr_base(task->id, "0123456789"));
-  printk(COLOR_WHITE, "\n");
 
   return 0;
 }

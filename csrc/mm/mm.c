@@ -20,78 +20,10 @@ t_page_directory          *cur_dir=0;
 t_page_table              *page_table = 0;
 t_free_block		  *free_block = 0;
 
-// a changer de place
-
-
 unsigned                  *frames;
 unsigned                  nframes;
 
-
 extern void               copy_page_physical(unsigned src, unsigned dest);
-
-// t_mem_block               *memory = 0;
-
-// void                      *phys_alloc(unsigned size)
-// {
-//   t_mem_block             *tmp;
-//   struct list_head        *pos = &memory->list;
-//   list_for_each(pos, &memory->list)
-//   {
-//     printk(COLOR_WHITE, "HEAY");
-//     tmp = list_entry(pos, t_mem_block, list);
-
-//     if (!tmp->used && tmp->size >= size)
-//     {
-//       tmp->used = 1;
-//       tmp->size = size;
-
-//       if (tmp->size & 0xFFFFF000)
-//       {
-//         tmp->size &= 0xFFFFF000;
-//         tmp->size += 0x1000;
-//       }
-
-//       if (tmp->size > size)
-//       {
-//         t_mem_block       *new;
-
-//         new = kmalloc(sizeof(t_mem_block));
-//         memset(new, 0, sizeof(t_mem_block));
-
-//         list_add_tail(&new->list, &memory->list);
-//       }
-//     }
-//   }
-//   return 0;
-// }
-
-// void                      init_dyn_mem()
-// {
-//   void                    *test = 0;
-
-//   memory = kmalloc(sizeof(t_mem_block));
-//   memset(memory, 0, sizeof(t_mem_block));
-
-//   INIT_LIST_HEAD(&memory->list);
-//   memory->used = 0;
-//   memory->size = 0x00100000;
-
-//   test = phys_alloc(100);
-
-//   printk(COLOR_WHITE, "TEST : ");
-//   printk(COLOR_WHITE, my_putnbr_base(test, "0123456789ABCDEF"));
-//   printk(COLOR_WHITE, "\n");
-// }
-
-void                      alloc_reserved_hard()
-{
-
-}
-
-// void                      *mmap(u64 *pid, void *vaddr, int right, unsigned size)
-// {
-
-// }
 
 unsigned                  virt_to_phys(unsigned virt)
 {
@@ -107,7 +39,6 @@ unsigned                  virt_to_phys(unsigned virt)
 
   return (phys);
 }
-
 
 unsigned                  phys_to_virt(unsigned phys)
 {
@@ -199,14 +130,14 @@ static void* first_fit(int q_block_size) {
     if (sizeof(tmp->block) >= q_block_size) {
       block_ret = free_block->block;
       t_free_block* new_free_block = kmalloc(sizeof(t_free_block));
-      
+
       tmp->p_prev->p_next = new_free_block;
       new_free_block->p_prev = tmp->p_prev;
       break;
      }
     tmp = tmp->p_next;
   }
-  
+
   // return sizeof(block_ret);
   return block_ret;
 }
@@ -257,16 +188,11 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
 
 void                      alloc_page_at(unsigned phys, t_page *page, int is_kernel, int is_writeable)
 {
-  if (page->frame != 0)
-    return ;
-  else
-  {
-    set_frame(phys);
-    page->present = 1;
-    page->rw = (is_writeable)?1:0;
-    page->user = (is_kernel)?0:1;
-    page->frame = phys / 0x1000;
-  }
+  set_frame(phys);
+  page->present = 1;
+  page->rw = (is_writeable)?1:0;
+  page->user = (is_kernel)?0:1;
+  page->frame = phys / 0x1000;
 }
 
 void                      initial_map(unsigned virt, unsigned size)
@@ -284,27 +210,22 @@ void                      initial_map(unsigned virt, unsigned size)
 
 static t_page_table       *clone_table(t_page_table *src, unsigned int *physAddr)
 {
-  // Make a new page table, which is page aligned.
   int                     i;
   t_page_table            *table = kmalloc_ap(sizeof(t_page_table), physAddr);
-  // Ensure that the new table is blank.
+
   memset(table, 0, sizeof(t_page_directory));
 
-  // For every entry in the table...
   for (i = 0; i < 1024; i++)
   {
-    // If the source entry has a frame associated with it...
     if (src->pages[i].frame)
     {
-      // Get a new frame.
       alloc_page(&table->pages[i], 0, 0);
-      // Clone the flags from source to destination.
+
       if (src->pages[i].present) table->pages[i].present = 1;
       if (src->pages[i].rw) table->pages[i].rw = 1;
       if (src->pages[i].user) table->pages[i].user = 1;
       if (src->pages[i].accessed) table->pages[i].accessed = 1;
       if (src->pages[i].dirty) table->pages[i].dirty = 1;
-      // Physically copy the data across. This function is in process.s.
       copy_page_physical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
     }
   }
@@ -314,18 +235,15 @@ static t_page_table       *clone_table(t_page_table *src, unsigned int *physAddr
 t_page_directory          *clone_directory(t_page_directory *src)
 {
   unsigned int          phys;
-  // Make a new page directory and obtain its physical address.
+
   t_page_directory      *dir = (t_page_directory*)kmalloc_ap(sizeof(t_page_directory), &phys);
-  // Ensure that it is blank.
+
   memset(dir, 0, sizeof(t_page_directory));
 
-  // Get the offset of tablesPhysical from the start of the t_page_directory structure.
   unsigned int offset = (unsigned int)dir->tablesPhysical - (unsigned int)dir;
 
-  // Then the physical address of dir->tablesPhysical is:
   dir->physicalAddr = phys + offset;
 
-  // Go through each page table. If the page table is in the kernel directory, do not make a new copy.
   int i;
   for (i = 0; i < 1024; i++)
   {
@@ -334,13 +252,11 @@ t_page_directory          *clone_directory(t_page_directory *src)
 
     if (page_dir->tables[i] == src->tables[i])
     {
-      // It's in the kernel, so just use the same pointer.
       dir->tables[i] = src->tables[i];
       dir->tablesPhysical[i] = src->tablesPhysical[i];
     }
     else
     {
-      // Copy the table.
       unsigned int phys;
       dir->tables[i] = clone_table(src->tables[i], &phys);
       dir->tablesPhysical[i] = phys | 0x07;
@@ -363,7 +279,7 @@ t_page_directory          *create_empty_directory()
   int i;
   for (i = 0; i < 1024; i++)
   {
-    if (i >= 768 || i <= 5)
+    if (i >= 768 || i <= 2)
     {
       dir->tables[i] = src->tables[i];
       dir->tablesPhysical[i] = src->tablesPhysical[i];
@@ -416,8 +332,6 @@ void                      page_fault(struct s_regs *regs)
   printk(COLOR_WHITE, "\n");
   printk(COLOR_WHITE, "Page fault\n");
 
-  // printk(COLOR_WHITE, "Page dir page : ");
-  // printk(COLOR_WHITE, my_putnbr_base(get_page(faulting_address, 0, cur_dir), "0123456789ABCDEF"));
   for(;;);
 }
 
@@ -434,9 +348,6 @@ void                      invlpg(void *vaddr)
   __asm__ volatile("mov %0, %%cr3":: "b"(addr));
 
   // __asm__ volatile("invlpg (%0)":: "r"(vaddr) : "memory");
-  printk(COLOR_WHITE, "INVLPG frame = ");
-  printk(COLOR_WHITE, my_putnbr_base(get_page((unsigned)vaddr * 0x1000, 0, cur_dir)->frame, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\n");
 }
 
 void                      init_page_dir()
@@ -463,7 +374,6 @@ void                      init_page_dir()
   // idt_set_gate(13, (unsigned)&general_protection_exception, 0x08, 0x8E);
   idt_set_gate(14, (unsigned)&page_fault, 0x08, 0x8E);
 
-  // cur_dir = clone_directory(page_dir);
   cur_dir = page_dir;
   switch_page_directory(page_dir);
 
@@ -474,6 +384,4 @@ void                      init_page_dir()
 void                      init_mm()
 {
   init_page_dir();
-  // init_dyn_mem();
-
 }

@@ -38,24 +38,8 @@ void                      get_stack_args()
   paging_pid = *(u64 *)stack_start;
   io_pid = *((u64 *)stack_start + 1);
 
-
   program_names_addr_start = *(stack_start + 4);
   program_names_addr_end = *(stack_start + 5);
-
-  // char tmp[10];
-  // unsigned *pid_split = (unsigned *)&paging_pid;
-
-  // uitoa_base(pid_split[0], tmp, 16);
-  // kwrite(15, "Paging pid = ", 0);
-  // kwrite(15, tmp, 0);
-  // pid_split = (unsigned *)&io_pid;
-  // uitoa_base(pid_split[0], tmp, 16);
-  // kwrite(15, "\nIo pid = ", 0);
-  // kwrite(15, tmp, 0);
-  // kwrite(15, "\n", 0);
-
-  // io_pid = (u64 *)stack_start;
-  // paging_pid = (u64 *)(stack_start + 2);
 }
 
 int                       prepare_programs()
@@ -69,9 +53,6 @@ int                       prepare_programs()
       programs[nb_progs].name[j++] = *(char *)i;
     else
     {
-      kwrite(15, "FOUND NAME = ", 0);
-      kwrite(15, programs[nb_progs].name, 0);
-      kwrite(15, "\n", 0);
       programs[nb_progs].name[j++] = 0;
       nb_progs++;
       j = 0;
@@ -79,15 +60,7 @@ int                       prepare_programs()
   }
 
   for (i = 0; i < nb_progs; i++)
-  {
-    char tmp[10];
-
     programs[i].elf_addr = (unsigned *)*(stack_start + i + 6);
-    uitoa_base((unsigned)programs[i].elf_addr, tmp, 16);
-    kwrite(15, "Program addr = 0x", 0);
-    kwrite(15, tmp, 0);
-    kwrite(15, "\n", 0);
-  }
 
   return 0;
 }
@@ -119,8 +92,8 @@ int                       main()
   if ((ret = prepare_programs()) < 0)
     print_error(ret);
 
-  if ((ret = launch_first()) < 0)
-    print_error(ret);
+  // if ((ret = launch_first()) < 0)
+  //   print_error(ret);
 
   register_listen_rpcs();
 

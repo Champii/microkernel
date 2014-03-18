@@ -48,20 +48,20 @@ int                       queue_mess(u64 pid, void *msg, unsigned size)
   unsigned                *pid_split = (unsigned *)&pid;
   t_task                  *task = (t_task *)pid_split[1];
 
-  printk(COLOR_WHITE, "\nSEND : 0x");
-  printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " Task = 0x");
-  printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " msg = 0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)msg, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " = ");
-  printk(COLOR_WHITE, (((char *)msg) + 8));
-  printk(COLOR_WHITE, " func id = ");
-  printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)msg, "0123456789"));
-  printk(COLOR_WHITE, "\n");
-  printk(COLOR_WHITE, "Pid queued: ");
-  printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
-  printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "\nSEND : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " Task = 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(pid_split[1], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " msg = 0x");
+  // printk(COLOR_WHITE, my_putnbr_base((unsigned)msg, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " = ");
+  // printk(COLOR_WHITE, (((char *)msg) + 8));
+  // printk(COLOR_WHITE, " func id = ");
+  // printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)msg, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "Pid queued: ");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, "\n");
 
   if (!task)
   {
@@ -167,19 +167,19 @@ int                       recv(u64 pid, void *pool, unsigned pool_size)
   // switch_page_directory(current_task->page_directory);
   // unsigned                *pid_split = (unsigned *)(((char *)pool) + 4);
 
-  printk(COLOR_WHITE, "RECV : 0x");
-  printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
-  // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " msg = 0x");
-  printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
-  printk(COLOR_WHITE, " size = ");
-  printk(COLOR_WHITE, my_putnbr_base(pool_size, "0123456789"));
-  printk(COLOR_WHITE, " func id = ");
-  printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)pool, "0123456789"));
-  printk(COLOR_WHITE, " = ");
-  printk(COLOR_WHITE, " GOT = ");
-  printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
-  printk(COLOR_WHITE, "\n");
+  // printk(COLOR_WHITE, "RECV : 0x");
+  // printk(COLOR_WHITE, my_putnbr_base(getpid(), "0123456789ABCDEF"));
+  // // printk(COLOR_WHITE, my_putnbr_base(pid_split[0], "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " msg = 0x");
+  // printk(COLOR_WHITE, my_putnbr_base((unsigned)pool, "0123456789ABCDEF"));
+  // printk(COLOR_WHITE, " size = ");
+  // printk(COLOR_WHITE, my_putnbr_base(pool_size, "0123456789"));
+  // printk(COLOR_WHITE, " func id = ");
+  // printk(COLOR_WHITE, my_putnbr_base(*(unsigned *)pool, "0123456789"));
+  // printk(COLOR_WHITE, " = ");
+  // printk(COLOR_WHITE, " GOT = ");
+  // printk(COLOR_WHITE, my_putnbr_base(top->size, "0123456789"));
+  // printk(COLOR_WHITE, "\n");
 
   // int i;
   // char c[2];

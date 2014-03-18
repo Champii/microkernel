@@ -40,7 +40,7 @@ void                      register_listen_rpcs()
     print_error(ret);
   }
 
-  printk(COLOR_WHITE, "IO service listening...\n");
+  // printk(COLOR_WHITE, "IO service listening...\n");
   if ((ret = listen_rpc()) < 0)
   {
     kwrite(COLOR_WHITE, "IO: Error Listen rpc RPC\n", 0);

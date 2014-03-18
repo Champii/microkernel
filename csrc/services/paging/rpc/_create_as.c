@@ -15,7 +15,7 @@
 #include                  <get_argument.h>
 #include                  <sys/syscall.h>
 
-extern t_page_directory   *paging_pd;
+extern t_page_directory   *paging_dir;
 
 // typedef struct        task
 // {
@@ -32,12 +32,12 @@ void                      prepare_pd(t_page_directory *pd)
 {
   unsigned i;
 
-  alloc_page(get_page((unsigned)pd, 1, paging_pd), 0, 1);
-  alloc_page(get_page((unsigned)pd + 0x1000, 1, paging_pd), 0, 1);
-  alloc_page(get_page((unsigned)pd + 0x2000, 1, paging_pd), 0, 1);
+  alloc_page(get_page((unsigned)((char *)pd), 1, paging_dir), 0, 1);
+  alloc_page(get_page((unsigned)((char *)pd + 0x1000), 1, paging_dir), 0, 1);
+  alloc_page(get_page((unsigned)((char *)pd + 0x2000), 1, paging_dir), 0, 1);
 
-  for (i = (unsigned)pd + 0x3000; i < (unsigned)pd + (1024 * 0x1000) + 0x3000; i += 0x1000)
-    alloc_page(get_page(i, 1, paging_pd), 0, 1);
+  for (i = (unsigned)((char *)pd + 0x3000); i < (unsigned)((char *)pd + (1024 * 0x1000) + 0x3000); i += 0x1000)
+    alloc_page(get_page(i, 1, paging_dir), 0, 1);
 
 }
 

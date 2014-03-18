@@ -34,9 +34,10 @@ void                      welcome_screen()
 int                       main()
 {
 
-  // welcome_screen();
+  welcome_screen();
 
-  printk(COLOR_WHITE, "Starting IO service\n");
+  kwrite(COLOR_WHITE, "   ", 0);
+  printk(COLOR_WHITE, "\n$> ");
 
   register_listen_rpcs();
 

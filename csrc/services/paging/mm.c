@@ -29,7 +29,7 @@ int itoa_base(int n, char *str, unsigned size);
 
 t_page_directory          *processes_pd = (t_page_directory *)0x20000000;
 
-t_page_directory          *paging_pd;
+t_page_directory          *paging_dir;
 
 unsigned                  temp_heap = 0x30000000;
 
@@ -48,9 +48,6 @@ static void               *_kmalloc(unsigned size, int align, unsigned *phys)
   tmp = (void *)temp_heap;
   temp_heap += size;
 
-  // printk(COLOR_WHITE, "KMALLOC = ");
-  // printk(COLOR_WHITE, my_putnbr_base(size, "0123456789"));
-  // printk(COLOR_WHITE, "\n");
   return (tmp);
 }
 
@@ -85,7 +82,7 @@ unsigned                  virt_to_phys(unsigned virt)
   table_idx = virt / 1024;
   offset = virt % 0x1000;
 
-  phys = (paging_pd->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
+  phys = (paging_dir->tables[table_idx]->pages[virt%1024].frame * 0x1000) + offset;
 
   return (phys);
 }
@@ -189,23 +186,11 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
   else if (make)
   {
     unsigned              phys;
-    char tmp[10];
 
     dir->tables[table_idx] = (t_page_table*)kmalloc_ap(sizeof(t_page_table), &phys);
     memset(dir->tables[table_idx], 0, sizeof(t_page_table));
 
-    itoa_base((unsigned)dir->tablesPhysical[table_idx], tmp, 16);
-    kwrite(15, "Get page MAKE physical1 = 0x", 0);
-    kwrite(15, tmp, 0);
-    kwrite(15, "\n", 0);
-
     dir->tablesPhysical[table_idx] = phys | 0x7;
-    itoa_base((unsigned)dir->tablesPhysical[table_idx], tmp, 16);
-    kwrite(15, "Get page MAKE physical2 = 0x", 0);
-    kwrite(15, tmp, 0);
-    kwrite(15, "\n", 0);
-
-
     return &dir->tables[table_idx]->pages[address%1024];
   }
   else
@@ -214,94 +199,50 @@ t_page                    *get_page(unsigned address, int make, t_page_directory
 
 t_page_directory          *get_as_from_pid(unsigned pid)
 {
-  return (t_page_directory *)((unsigned)processes_pd + ((pid - 1) * 0x1000 * 1024) + ((pid - 1) * 0x3000));
+  return (t_page_directory *)((char *)processes_pd + ((pid - 1) * 0x1000 * 1024) + ((pid - 1) * 0x3000));
 }
-
-// t_page_directory          *get_as_from_pid(unsigned pid)
-// {
-//   return (t_page_directory *)((128 + pid - 1) * 1024 * 0x1000);
-// }
 
 int uitoa_base(unsigned n, char *str, unsigned base);
 
 void                      prepare_paging()
 {
   t_page_directory *pl_dir = get_as_from_pid(1);
+  paging_dir = get_as_from_pid(2);
   t_page_directory *io_dir = get_as_from_pid(3);
 
 
   unsigned i;
   unsigned j = 0;
-  // char tmp[10];
-  // itoa_base((unsigned)pl_dir, tmp, 16);
-  // kwrite(15, "PL = 0x", 0);
-  // kwrite(15, tmp, 0);
-  // kwrite(15, "\n", 0);
-  // itoa_base((unsigned)paging_pd, tmp, 16);
-  // kwrite(15, "PAGING = 0x", 0);
-  // kwrite(15, tmp, 0);
-  // kwrite(15, "\n", 0);
-  // itoa_base((unsigned)io_dir, tmp, 16);
-  // kwrite(15, "IO = 0x", 0);
-  // kwrite(15, tmp, 0);
-  // kwrite(15, "\n", 0);
 
   memset(pl_dir->tables, 0, 0x1000);
-  for (i = (unsigned)pl_dir + 0x3000; i < (unsigned)pl_dir + (1024 * 0x1000) + 0x3000; i += 0x1000)
-  {
+  for (i = (unsigned)((char *)pl_dir + 0x3000); i < (unsigned)((char *)pl_dir + (1024 * 0x1000) + 0x3000); i += 0x1000)
     pl_dir->tables[j++] = (t_page_table *)i;
-  }
 
-  memset(paging_pd->tables, 0, 0x1000);
+  memset(paging_dir->tables, 0, 0x1000);
   j = 0;
-  for (i = (unsigned)paging_pd + 0x3000; i < (unsigned)paging_pd + (1024 * 0x1000) + 0x3000; i += 0x1000)
-    paging_pd->tables[j++] = (t_page_table *)i;
+  for (i = (unsigned)((char *)paging_dir + 0x3000); i < (unsigned)((char *)paging_dir + (1024 * 0x1000) + 0x3000); i += 0x1000)
+    paging_dir->tables[j++] = (t_page_table *)i;
 
   memset(io_dir->tables, 0, 0x1000);
   j = 0;
-  for (i = (unsigned)io_dir + 0x3000; i < (unsigned)io_dir + (1024 * 0x1000) + 0x3000; i += 0x1000)
+  for (i = (unsigned)((char *)io_dir + 0x3000); i < (unsigned)((char *)io_dir + (1024 * 0x1000) + 0x3000); i += 0x1000)
     io_dir->tables[j++] = (t_page_table *)i;
 }
 
 void                      init_page_dir()
 {
-  // unsigned                mem_end_page = 0xFFFFFF;
-  char tmp[10];
-
-  // processes_pd = (t_page_directory *)pd_addr;
-
-  // t_page_directory *pl_pd = get_as_from_pid(1);
-  paging_pd = get_as_from_pid(2);
-
   prepare_paging();
-  // paging_pd = processes_pd + 1;
-
-  // mem_end_page = mem_end_page;
-  // nframes = 0xFFFFFF / 0x1000;
   frames = kmalloc(INDEX_FROM_BIT(0xFFFFFF / 0x1000));
   memset(frames, 0, INDEX_FROM_BIT(0xFFFFFF / 0x1000));
 
-  // memset(tmp, 0, 10);
-
-  uitoa_base(get_page(0x42424242, 0, paging_pd)->frame, tmp, 16);
-  kwrite(15, "Paging test Frame = 0x", 0);
-  kwrite(15, tmp, 0);
-  kwrite(15, " (should be 0x4242)\n", 0);
-
   unsigned i;
   for (i = 0; i < start_frame; i++)
-  {
     set_frame(i * 0x1000);
-  }
-
-  // kwrite(15, "lol2", 0);
 }
 
 void                      init_mm()
 {
   init_page_dir();
-  // init_dyn_mem();
-
 }
 
 
